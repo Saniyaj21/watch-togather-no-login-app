@@ -1,45 +1,56 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
+import ParticipantList from "./ParticipantList";
 
 type Props = {
   roomId: string;
+  myName: string;
   onLeave: () => void;
 };
 
-export default function RoomHeader({ roomId, onLeave }: Props) {
+export default function RoomHeader({ roomId, myName, onLeave }: Props) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { state } = useRoom();
+  const [showParticipants, setShowParticipants] = useState(false);
 
   const copyRoomId = async () => {
     await Clipboard.setStringAsync(roomId);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-      <View style={styles.left}>
-        <TouchableOpacity onPress={copyRoomId} style={[styles.roomIdBadge, { backgroundColor: theme.primary }]}>
-          <Text style={styles.roomIdText}>{roomId}</Text>
-          <Text style={styles.copyHint}>TAP TO COPY</Text>
-        </TouchableOpacity>
-        <View style={styles.statusRow}>
-          <View style={[styles.dot, { backgroundColor: state.connected ? theme.success : theme.danger }]} />
-          <Text style={[styles.participants, { color: theme.textSecondary }]}>
-            {state.connected ? `${state.participants.length} ${state.participants.length === 1 ? "member" : "members"}` : "Connecting..."}
-          </Text>
+    <>
+      <View style={[styles.container, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <View style={styles.left}>
+          <TouchableOpacity onPress={copyRoomId} style={[styles.roomIdBadge, { backgroundColor: theme.primary }]}>
+            <Text style={styles.roomIdText}>{roomId}</Text>
+            <Text style={styles.copyHint}>TAP TO COPY</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowParticipants(true)} style={styles.statusRow}>
+            <View style={[styles.dot, { backgroundColor: state.connected ? theme.success : theme.danger }]} />
+            <Text style={[styles.participants, { color: theme.textSecondary }]}>
+              {state.connected ? `${state.participants.length} ${state.participants.length === 1 ? "member" : "members"}` : "Connecting..."}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.right}>
+          <TouchableOpacity onPress={toggleTheme} style={[styles.themeBtn, { backgroundColor: theme.inputBackground }]}>
+            <Text style={{ fontSize: 18 }}>{isDark ? "\u2600\uFE0F" : "\uD83C\uDF19"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onLeave} style={[styles.leaveBtn, { backgroundColor: theme.danger }]}>
+            <Text style={styles.leaveText}>Leave</Text>
+          </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.right}>
-        <TouchableOpacity onPress={toggleTheme} style={[styles.themeBtn, { backgroundColor: theme.inputBackground }]}>
-          <Text style={{ fontSize: 18 }}>{isDark ? "☀️" : "🌙"}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onLeave} style={[styles.leaveBtn, { backgroundColor: theme.danger }]}>
-          <Text style={styles.leaveText}>Leave</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+
+      <ParticipantList
+        visible={showParticipants}
+        onClose={() => setShowParticipants(false)}
+        myName={myName}
+      />
+    </>
   );
 }
 

@@ -15,6 +15,8 @@ type RoomState = {
   currentTime: number;
   messages: Message[];
   typingUsers: string[];
+  hostName: string | null;
+  kicked: boolean;
 };
 
 type Action =
@@ -34,7 +36,9 @@ type Action =
     }
   | { type: "CHAT_HISTORY"; messages: Message[] }
   | { type: "CHAT_RECEIVED"; message: Message }
-  | { type: "USER_TYPING"; name: string; isTyping: boolean };
+  | { type: "USER_TYPING"; name: string; isTyping: boolean }
+  | { type: "HOST_CHANGED"; hostName: string }
+  | { type: "KICKED" };
 
 const initialState: RoomState = {
   connected: false,
@@ -45,6 +49,8 @@ const initialState: RoomState = {
   currentTime: 0,
   messages: [],
   typingUsers: [],
+  hostName: null,
+  kicked: false,
 };
 
 function reducer(state: RoomState, action: Action): RoomState {
@@ -88,6 +94,10 @@ function reducer(state: RoomState, action: Action): RoomState {
         typingUsers: action.isTyping ? [...filtered, action.name] : filtered,
       };
     }
+    case "HOST_CHANGED":
+      return { ...state, hostName: action.hostName };
+    case "KICKED":
+      return { ...state, kicked: true };
     default:
       return state;
   }
@@ -117,8 +127,9 @@ export const useRoomSocket = (roomId: string, name: string) => {
       dispatch({ type: "DISCONNECTED" });
     });
 
-    socket.on("room:participant-joined", ({ participants }) => {
+    socket.on("room:participant-joined", ({ participants, hostName }) => {
       dispatch({ type: "SET_PARTICIPANTS", participants });
+      if (hostName) dispatch({ type: "HOST_CHANGED", hostName });
     });
     socket.on("room:participant-left", ({ participants }) => {
       dispatch({ type: "SET_PARTICIPANTS", participants });
@@ -149,6 +160,15 @@ export const useRoomSocket = (roomId: string, name: string) => {
     });
     socket.on("chat:user-typing", ({ name: userName, isTyping }) => {
       dispatch({ type: "USER_TYPING", name: userName, isTyping });
+    });
+
+    socket.on("room:host-changed", ({ hostName }) => {
+      dispatch({ type: "HOST_CHANGED", hostName });
+    });
+
+    socket.on("room:kicked", () => {
+      dispatch({ type: "KICKED" });
+      socket.disconnect();
     });
 
     // Handle app going to background/foreground
@@ -204,6 +224,10 @@ export const useRoomSocket = (roomId: string, name: string) => {
     socketRef.current?.emit("video:seek", { currentTime });
   }, []);
 
+  const kickUser = useCallback((socketId: string) => {
+    socketRef.current?.emit("room:kick", { socketId });
+  }, []);
+
   return {
     state,
     sendChat,
@@ -212,5 +236,6 @@ export const useRoomSocket = (roomId: string, name: string) => {
     playVideo,
     pauseVideo,
     seekVideo,
+    kickUser,
   };
 };
