@@ -6,8 +6,6 @@ import {
   FlatList,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
@@ -43,11 +41,7 @@ export default function ChatPanel({ myName }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
-    >
+    <View style={styles.container}>
       <FlatList
         ref={flatListRef}
         data={state.messages}
@@ -92,7 +86,7 @@ export default function ChatPanel({ myName }: Props) {
           <Text style={styles.sendText}>Send</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

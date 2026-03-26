@@ -14,14 +14,23 @@ export default function HomeScreen() {
   const router = useRouter();
   const { theme, isDark, toggleTheme } = useTheme();
   const [name, setName] = useState("");
+  const [error, setError] = useState("");
 
   const handleCreate = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError("Please enter your name first");
+      return;
+    }
+    setError("");
     router.push({ pathname: "/create-room", params: { name: name.trim() } });
   };
 
   const handleJoin = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError("Please enter your name first");
+      return;
+    }
+    setError("");
     router.push({ pathname: "/join-room", params: { name: name.trim() } });
   };
 
@@ -52,16 +61,28 @@ export default function HomeScreen() {
               },
             ]}
             value={name}
-            onChangeText={setName}
+            onChangeText={(val) => {
+              setName(val);
+              if (val.trim()) setError("");
+            }}
             placeholder="Enter your name"
             placeholderTextColor={theme.textSecondary}
             autoCapitalize="words"
           />
 
+          {error ? (
+            <Text style={[styles.errorText, { color: theme.danger }]}>
+              {error}
+            </Text>
+          ) : null}
+
           <TouchableOpacity
             onPress={handleCreate}
-            style={[styles.btn, { backgroundColor: theme.primary }]}
-            disabled={!name.trim()}
+            style={[
+              styles.btn,
+              { backgroundColor: theme.primary },
+              !name.trim() && styles.btnDisabled,
+            ]}
           >
             <Text style={styles.btnText}>Create Room</Text>
           </TouchableOpacity>
@@ -72,8 +93,8 @@ export default function HomeScreen() {
               styles.btn,
               styles.btnOutline,
               { borderColor: theme.primary },
+              !name.trim() && styles.btnDisabled,
             ]}
-            disabled={!name.trim()}
           >
             <Text style={[styles.btnOutlineText, { color: theme.primary }]}>
               Join Room
@@ -128,4 +149,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   btnOutlineText: { fontSize: 17, fontWeight: "700" },
+  btnDisabled: { opacity: 0.5 },
+  errorText: { fontSize: 13, textAlign: "center", marginTop: -8 },
 });

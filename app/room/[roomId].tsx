@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -37,12 +37,18 @@ function RoomContent() {
       style={[styles.container, { backgroundColor: theme.background }]}
       edges={["top"]}
     >
-      <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
-      <VideoPlayer />
-      <UrlInput />
-      <View style={styles.chatContainer}>
-        <ChatPanel myName={name || "Guest"} />
-      </View>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
+        <VideoPlayer />
+        <UrlInput />
+        <View style={styles.chatContainer}>
+          <ChatPanel myName={name || "Guest"} />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
