@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png"
-      }
+      },
+      "package": "com.saniyaj.watchtogather"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -27,6 +28,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fa13422c-b714-4d65-af2d-301e4a2a055e"
+      }
+    }
   }
 }

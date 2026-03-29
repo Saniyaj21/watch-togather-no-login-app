@@ -7,37 +7,48 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import * as Clipboard from "expo-clipboard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
 import { createRoom } from "../lib/api";
 
+function normalizeNameParam(
+  raw: string | string[] | undefined
+): string {
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  if (Array.isArray(raw) && raw[0] && String(raw[0]).trim())
+    return String(raw[0]).trim();
+  return "Host";
+}
+
 export default function CreateRoomScreen() {
   const router = useRouter();
-  const { name } = useLocalSearchParams<{ name: string }>();
+  const params = useLocalSearchParams<{ name?: string | string[] }>();
+  const displayName = normalizeNameParam(params.name);
   const { theme } = useTheme();
   const [roomId, setRoomId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    createRoom(name || "Host")
+    createRoom(displayName)
       .then((data) => {
         setRoomId(data.roomId);
         setLoading(false);
       })
-      .catch((err) => {
-        setError(err.message);
+      .catch((err: Error) => {
+        setError(err.message ?? "Failed to create room");
         setLoading(false);
       });
-  }, [name]);
+  }, [displayName]);
 
   const copyAndEnter = async () => {
     if (!roomId) return;
+    // Load clipboard native module only when needed (avoids crashes on some dev builds at screen load)
+    const Clipboard = await import("expo-clipboard");
     await Clipboard.setStringAsync(roomId);
     router.replace({
       pathname: "/room/[roomId]",
-      params: { roomId, name: name || "Host" },
+      params: { roomId, name: displayName },
     });
   };
 
@@ -45,7 +56,7 @@ export default function CreateRoomScreen() {
     if (!roomId) return;
     router.replace({
       pathname: "/room/[roomId]",
-      params: { roomId, name: name || "Host" },
+      params: { roomId, name: displayName },
     });
   };
 
