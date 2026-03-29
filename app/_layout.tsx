@@ -20,7 +20,7 @@ function RootNav() {
           name="index"
           options={{ title: "Watch Together", headerShown: false }}
         />
-        <Stack.Screen name="create-room" options={{ title: "Create Room" }} />
+        {/* <Stack.Screen name="create-room" options={{ headerShown: false }} /> */}
         <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
         <Stack.Screen
           name="room/[roomId]"

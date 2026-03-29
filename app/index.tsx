@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { createRoom } from "../lib/api";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -16,13 +17,23 @@ export default function HomeScreen() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
-  const handleCreate = () => {
+
+  const [creating, setCreating] = useState(false);
+  const handleCreate = async () => {
     if (!name.trim()) {
       setError("Please enter your name first");
       return;
     }
     setError("");
-    router.push({ pathname: "/create-room", params: { name: name.trim() } });
+    setCreating(true);
+    try {
+      const data = await createRoom(name.trim());
+      router.replace({ pathname: "/room/[roomId]", params: { roomId: data.roomId, name: name.trim() } });
+    } catch (err) {
+      setError("Failed to create room");
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleJoin = () => {
@@ -76,15 +87,17 @@ export default function HomeScreen() {
             </Text>
           ) : null}
 
+
           <TouchableOpacity
             onPress={handleCreate}
             style={[
               styles.btn,
               { backgroundColor: theme.primary },
-              !name.trim() && styles.btnDisabled,
+              (!name.trim() || creating) && styles.btnDisabled,
             ]}
+            disabled={!name.trim() || creating}
           >
-            <Text style={styles.btnText}>Create Room</Text>
+            <Text style={styles.btnText}>{creating ? "Creating..." : "Create Room"}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
