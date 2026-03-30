@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
+  Text,
   TextInput,
   TouchableOpacity,
   FlatList,
@@ -75,9 +76,19 @@ export default function ChatPanel({ myName }: Props) {
         data={state.messages}
         keyExtractor={(item, i) => `${item.createdAt}-${item.senderName}-${i}`}
         renderItem={({ item, index }) => {
+          if (item.isSystem) {
+            return (
+              <View style={styles.systemChipRow}>
+                <View style={[styles.systemChip, { backgroundColor: theme.border + "33" }]}>
+                  <Text style={[styles.systemChipText, { color: theme.textSecondary }]}>{item.text}</Text>
+                </View>
+              </View>
+            );
+          }
+
           const prevMessage = index > 0 ? state.messages[index - 1] : null;
-          const showName = !prevMessage || prevMessage.senderName !== item.senderName;
-          
+          const showName = !prevMessage || prevMessage.senderName !== item.senderName || prevMessage.isSystem;
+
           return (
             <ChatMessage
               senderName={item.senderName}
@@ -149,6 +160,19 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
+  },
+  systemChipRow: {
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  systemChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  systemChipText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
 });
 

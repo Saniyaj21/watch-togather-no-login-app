@@ -4,7 +4,7 @@ import { Socket } from "socket.io-client";
 import { createSocket } from "../lib/socket";
 
 type Participant = { socketId: string; name: string };
-type Message = { senderName: string; text: string; createdAt: string };
+type Message = { senderName: string; text: string; createdAt: string; isSystem?: boolean };
 
 type RoomState = {
   connected: boolean;
@@ -127,12 +127,30 @@ export const useRoomSocket = (roomId: string, name: string) => {
       dispatch({ type: "DISCONNECTED" });
     });
 
-    socket.on("room:participant-joined", ({ participants, hostName }) => {
+    socket.on("room:participant-joined", ({ name: joinedName, participants, hostName }) => {
       dispatch({ type: "SET_PARTICIPANTS", participants });
       if (hostName) dispatch({ type: "HOST_CHANGED", hostName });
+      dispatch({
+        type: "CHAT_RECEIVED",
+        message: {
+          senderName: "__system__",
+          text: `${joinedName} joined`,
+          createdAt: new Date().toISOString(),
+          isSystem: true,
+        },
+      });
     });
-    socket.on("room:participant-left", ({ participants }) => {
+    socket.on("room:participant-left", ({ name: leftName, participants }) => {
       dispatch({ type: "SET_PARTICIPANTS", participants });
+      dispatch({
+        type: "CHAT_RECEIVED",
+        message: {
+          senderName: "__system__",
+          text: `${leftName} left`,
+          createdAt: new Date().toISOString(),
+          isSystem: true,
+        },
+      });
     });
 
     socket.on("video:changed", ({ url, videoType }) => {
