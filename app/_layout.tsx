@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 
 function RootNav() {
@@ -20,8 +21,7 @@ function RootNav() {
           name="index"
           options={{ title: "Watch Together", headerShown: false }}
         />
-        {/* <Stack.Screen name="create-room" options={{ headerShown: false }} /> */}
-        <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
+        <Stack.Screen name="join-room" options={{ headerShown: false }} />
         <Stack.Screen
           name="room/[roomId]"
           options={{ headerShown: false }}
@@ -33,8 +33,11 @@ function RootNav() {
 
 export default function Layout() {
   return (
-    <ThemeProvider>
-      <RootNav />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootNav />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
+

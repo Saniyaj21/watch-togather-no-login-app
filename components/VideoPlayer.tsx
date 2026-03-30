@@ -1,5 +1,5 @@
-import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRoom } from "../contexts/RoomContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { isYouTubeUrl } from "../lib/videoUtils";
@@ -12,9 +12,15 @@ export default function VideoPlayer() {
 
   if (!state.videoUrl) {
     return (
-      <View style={[styles.placeholder, { backgroundColor: theme.surface }]}>
+      <View style={[styles.placeholder, { backgroundColor: "rgba(10, 14, 24, 0.4)" }]}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primary + "1A" }]}>
+          <Ionicons name="play" size={32} color={theme.primary} />
+        </View>
         <Text style={[styles.placeholderText, { color: theme.textSecondary }]}>
-          Paste a video URL below to start watching
+          No video loaded yet.
+        </Text>
+        <Text style={[styles.placeholderSubtext, { color: theme.textSecondary + "99" }]}>
+          Swipe to the 'Video' tab to paste a URL.
         </Text>
       </View>
     );
@@ -32,7 +38,17 @@ const styles = StyleSheet.create({
     height: 220,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 40,
   },
-  placeholderText: { fontSize: 15, textAlign: "center" },
+  placeholderText: { fontSize: 17, fontWeight: "700", textAlign: "center", marginTop: 16 },
+  placeholderSubtext: { fontSize: 13, textAlign: "center", marginTop: 4 },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(186, 158, 255, 0.2)",
+  },
 });

@@ -6,37 +6,44 @@ type Props = {
   senderName: string;
   text: string;
   isSelf: boolean;
+  showName: boolean;
 };
 
-export default function ChatMessage({ senderName, text, isSelf }: Props) {
+export default function ChatMessage({ senderName, text, isSelf, showName }: Props) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.row, isSelf && styles.rowSelf]}>
+    <View style={[
+      styles.container, 
+      isSelf ? styles.alignEnd : styles.alignStart,
+      !showName && { marginBottom: 4 } // Grouped messages are closer
+    ]}>
+      {showName && (
+        <Text
+          style={[
+            styles.name,
+            { color: isSelf ? theme.primary : theme.textSecondary },
+          ]}
+        >
+          {senderName.toUpperCase()}
+        </Text>
+      )}
       <View
         style={[
           styles.bubble,
           {
-            backgroundColor: isSelf
-              ? theme.chatBubbleSelf
-              : theme.chatBubbleOther,
+            backgroundColor: isSelf ? theme.chatBubbleSelf : theme.chatBubbleOther,
+            borderColor: isSelf ? theme.primary + "33" : "transparent",
+            borderWidth: isSelf ? 1 : 0,
+            borderTopRightRadius: (isSelf && showName) ? 0 : 14,
+            borderTopLeftRadius: (!isSelf && showName) ? 0 : 14,
           },
-          isSelf && styles.bubbleSelf,
         ]}
       >
-        {!isSelf && (
-          <Text style={[styles.name, { color: theme.primary }]}>
-            {senderName}
-          </Text>
-        )}
         <Text
           style={[
             styles.text,
-            {
-              color: isSelf
-                ? theme.chatBubbleSelfText
-                : theme.chatBubbleOtherText,
-            },
+            { color: isSelf ? theme.chatBubbleSelfText : theme.chatBubbleOtherText },
           ]}
         >
           {text}
@@ -47,24 +54,24 @@ export default function ChatMessage({ senderName, text, isSelf }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    marginVertical: 2,
-    paddingHorizontal: 12,
+  container: {
+    flexDirection: "column",
+    gap: 2,
+    maxWidth: "80%",
+    marginBottom: 10,
   },
-  rowSelf: { justifyContent: "flex-end" },
+  alignStart: { alignSelf: "flex-start", alignItems: "flex-start" },
+  alignEnd: { alignSelf: "flex-end", alignItems: "flex-end" },
+  name: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    marginLeft: 6,
+  },
   bubble: {
-    maxWidth: "78%",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderRadius: 14,
   },
-  bubbleSelf: {
-    borderBottomRightRadius: 4,
-    borderBottomLeftRadius: 16,
-  },
-  name: { fontSize: 12, fontWeight: "600", marginBottom: 2 },
-  text: { fontSize: 15, lineHeight: 20 },
+  text: { fontSize: 14, lineHeight: 18 },
 });

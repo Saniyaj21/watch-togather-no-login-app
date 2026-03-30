@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
@@ -12,35 +13,34 @@ type Props = {
 };
 
 export default function RoomHeader({ roomId, myName, onLeave }: Props) {
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const { state } = useRoom();
   const [showParticipants, setShowParticipants] = useState(false);
 
   const copyRoomId = async () => {
     await Clipboard.setStringAsync(roomId);
+    Alert.alert("Copied", "Room ID copied to clipboard!");
   };
 
   return (
     <>
-      <View style={[styles.container, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+      <View style={[styles.container, { backgroundColor: "rgba(10, 14, 24, 0.8)", borderBottomColor: theme.border + "1A" }]}>
         <View style={styles.left}>
-          <TouchableOpacity onPress={copyRoomId} style={[styles.roomIdBadge, { backgroundColor: theme.primary }]}>
-            <Text style={styles.roomIdText}>{roomId}</Text>
-            <Text style={styles.copyHint}>TAP TO COPY</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowParticipants(true)} style={styles.statusRow}>
-            <View style={[styles.dot, { backgroundColor: state.connected ? theme.success : theme.danger }]} />
-            <Text style={[styles.participants, { color: theme.textSecondary }]}>
-              {state.connected ? `${state.participants.length} ${state.participants.length === 1 ? "member" : "members"}` : "Connecting..."}
+          <TouchableOpacity onPress={copyRoomId} activeOpacity={0.7} style={[styles.roomBadge, { backgroundColor: theme.primary + "1A", borderColor: theme.primary + "33" }]}>
+            <Text style={[styles.roomIdText, { color: theme.primary }]}>
+               {roomId}
             </Text>
+            <Ionicons name="copy-outline" size={12} color={theme.primary} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
+
         <View style={styles.right}>
-          <TouchableOpacity onPress={toggleTheme} style={[styles.themeBtn, { backgroundColor: theme.inputBackground }]}>
-            <Text style={{ fontSize: 18 }}>{isDark ? "\u2600\uFE0F" : "\uD83C\uDF19"}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onLeave} style={[styles.leaveBtn, { backgroundColor: theme.danger }]}>
-            <Text style={styles.leaveText}>Leave</Text>
+          <TouchableOpacity 
+            onPress={onLeave} 
+            activeOpacity={0.7}
+            style={[styles.leaveBtn, { backgroundColor: "rgba(255, 69, 58, 0.1)", borderColor: "rgba(255, 69, 58, 0.2)" }]}
+          >
+            <Text style={[styles.leaveText, { color: "#ff453a" }]}>Leave</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -56,36 +56,29 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    height: 50,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
   },
-  left: { flexDirection: "row", alignItems: "center", gap: 10 },
-  statusRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  right: { flexDirection: "row", alignItems: "center", gap: 8 },
-  roomIdBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  roomIdText: { color: "#FFF", fontWeight: "700", fontSize: 14, letterSpacing: 1 },
-  copyHint: { color: "rgba(255,255,255,0.6)", fontSize: 8, textAlign: "center" },
-  participants: { fontSize: 13 },
-  themeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  left: { flexDirection: "row", alignItems: "center" },
+  right: { flexDirection: "row", alignItems: "center" },
+  roomBadge: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
   },
+  roomIdText: { fontWeight: "800", fontSize: 13, letterSpacing: 1 },
   leaveBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
   },
-  leaveText: { color: "#FFF", fontWeight: "600", fontSize: 13 },
+  leaveText: { fontWeight: "700", fontSize: 13 },
 });

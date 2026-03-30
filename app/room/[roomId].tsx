@@ -1,5 +1,19 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -8,6 +22,9 @@ import RoomHeader from "../../components/RoomHeader";
 import VideoPlayer from "../../components/VideoPlayer";
 import UrlInput from "../../components/UrlInput";
 import ChatPanel from "../../components/ChatPanel";
+import ParticipantList from "../../components/ParticipantList";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 function RoomContent() {
   const { roomId, name } = useLocalSearchParams<{
@@ -17,6 +34,9 @@ function RoomContent() {
   const router = useRouter();
   const { theme } = useTheme();
   const { state } = useRoom();
+
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (state.kicked) {
@@ -32,22 +52,119 @@ function RoomContent() {
     router.replace("/");
   };
 
+  const handleTabPress = (index: number) => {
+    setActiveTab(index);
+    scrollRef.current?.scrollTo({ x: index * SCREEN_WIDTH, animated: true });
+  };
+
+  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    if (activeTab !== index) {
+      setActiveTab(index);
+    }
+  };
+
+  const renderTab = (index: number, icon: any, label: string | number) => {
+    const isActive = activeTab === index;
+    const content = (
+      <View style={styles.tabContent}>
+        <Ionicons 
+          name={icon} 
+          size={16} 
+          color={isActive ? "#39008c" : theme.textSecondary} 
+          style={{ marginRight: 6 }} 
+        />
+        <Text style={[styles.tabLabel, { color: isActive ? "#39008c" : theme.textSecondary }]}>
+          {label}
+        </Text>
+      </View>
+    );
+
+    return (
+      <TouchableOpacity
+        key={index}
+        onPress={() => handleTabPress(index)}
+        style={styles.tab}
+        activeOpacity={0.8}
+      >
+        {isActive ? (
+          <LinearGradient
+            colors={["#ba9eff", "#8455ef"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.activePill}
+          >
+            {content}
+          </LinearGradient>
+        ) : (
+          <View style={styles.inactivePill}>
+            {content}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.background }]}
       edges={["top"]}
     >
+      <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
+      
+      <VideoPlayer />
+
       <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        style={{ flex: 1 }}
+        behavior="padding"
+        enabled={Platform.OS === "ios"}
+        keyboardVerticalOffset={0}
       >
-        <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
-        <VideoPlayer />
-        <UrlInput />
-        <View style={styles.chatContainer}>
-          <ChatPanel myName={name || "Guest"} />
-        </View>
+          {/* Tab Navigation */}
+          <View style={[styles.tabBarContainer, { borderBottomColor: theme.border + "1A" }]}>
+            <View style={styles.tabTrack}>
+              {renderTab(0, "play", "Video")}
+              {renderTab(1, "chatbubble", "Chat")}
+              {renderTab(2, "people", state.participants?.length || 0)}
+            </View>
+          </View>
+
+          <View style={styles.contentArea}>
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScrollEnd}
+              contentOffset={{ x: SCREEN_WIDTH, y: 0 }} // default state tab 1
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Tab 0: Load Video */}
+              <View style={{ width: SCREEN_WIDTH }}>
+                <View style={styles.videoTabContainer}>
+                  <Text style={[styles.videoTabHeadline, { color: theme.textSecondary }]}>
+                    Want to watch something else?
+                  </Text>
+                  <Text style={[styles.videoTabSubline, { color: theme.textSecondary + "99" }]}>
+                    Paste a new video URL below to sync it to the room.
+                  </Text>
+                  <View style={styles.urlInputWrapper}>
+                    <UrlInput />
+                  </View>
+                </View>
+              </View>
+
+              {/* Tab 1: Chat */}
+              <View style={{ width: SCREEN_WIDTH }}>
+                <ChatPanel myName={name || "Guest"} />
+              </View>
+
+              {/* Tab 2: Participants */}
+              <View style={{ width: SCREEN_WIDTH }}>
+                <ParticipantList myName={name || "Guest"} />
+              </View>
+            </ScrollView>
+          </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -68,5 +185,54 @@ export default function RoomScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  chatContainer: { flex: 1 },
+  contentArea: { flex: 1 },
+  listContent: { paddingVertical: 6, paddingHorizontal: 8 },
+  tabBarContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  tabTrack: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  tab: {
+    flex: 1,
+  },
+  activePill: {
+    borderRadius: 12,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inactivePill: {
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabLabel: { fontSize: 13, fontWeight: "800" },
+  videoTabContainer: {
+    padding: 16,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  videoTabHeadline: {
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  videoTabSubline: {
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  urlInputWrapper: {
+    width: "100%",
+  }
 });
+

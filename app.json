@@ -20,7 +20,8 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "package": "com.saniyaj.watchtogather"
+      "package": "com.saniyaj.watchtogather",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png",

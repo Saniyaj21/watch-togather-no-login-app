@@ -16,19 +16,19 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
-  background: "#1A1A2E",
-  surface: "#16213E",
-  text: "#EAEAEA",
-  textSecondary: "#AAAAAA",
-  primary: "#6C5CE7",
-  primaryLight: "#A29BFE",
-  border: "#2A2A4A",
-  chatBubbleSelf: "#6C5CE7",
-  chatBubbleSelfText: "#FFFFFF",
-  chatBubbleOther: "#2A2A4A",
-  chatBubbleOtherText: "#EAEAEA",
-  inputBackground: "#16213E",
-  danger: "#E74C3C",
+  background: "#0a0e18",
+  surface: "#1a1f2d",
+  text: "#e5e7f6",
+  textSecondary: "#a7aab9",
+  primary: "#ba9eff",
+  primaryLight: "#d9c8ff",
+  border: "#202534",
+  chatBubbleSelf: "rgba(186, 158, 255, 0.2)",
+  chatBubbleSelfText: "#e5e7f6",
+  chatBubbleOther: "#1a1f2d",
+  chatBubbleOtherText: "#e5e7f6",
+  inputBackground: "#0f131e",
+  danger: "#ff6e84",
   success: "#2ECC71",
 };
 

@@ -13,65 +13,61 @@ export default function UrlInput() {
     const trimmed = url.trim();
     if (!trimmed) return;
     const videoType = getVideoType(trimmed);
-    // Convert to embed URL so only the video player shows, not the full site
     const embedUrl = videoType === "youtube" ? trimmed : toEmbedUrl(trimmed);
     changeVideo(embedUrl, videoType);
     setUrl("");
   };
 
   return (
-    <View style={[styles.container, { borderBottomColor: theme.border }]}>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.inputBackground,
-            color: theme.text,
-            borderColor: theme.border,
-          },
-        ]}
-        value={url}
-        onChangeText={setUrl}
-        placeholder="Paste video URL (YouTube, Vimeo, etc.)"
-        placeholderTextColor={theme.textSecondary}
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="go"
-        onSubmitEditing={handleSubmit}
-      />
-      <TouchableOpacity
-        onPress={handleSubmit}
-        style={[styles.btn, { backgroundColor: theme.primary }]}
-      >
-        <Text style={styles.btnText}>Load</Text>
-      </TouchableOpacity>
+    <View style={[styles.outer, { backgroundColor: theme.inputBackground }]}>
+      <View style={[styles.pill, { backgroundColor: "#000000", borderColor: theme.border + "80" }]}>
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          value={url}
+          onChangeText={setUrl}
+          placeholder="Enter video URL..."
+          placeholderTextColor={theme.textSecondary + "80"}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="go"
+          onSubmitEditing={handleSubmit}
+        />
+        <TouchableOpacity onPress={handleSubmit} style={[styles.btn, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.btnText, { color: "#39008c" }]}>Load</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  pill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
-    borderBottomWidth: 1,
+    padding: 4,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   input: {
     flex: 1,
-    height: 40,
-    borderRadius: 8,
     paddingHorizontal: 12,
-    borderWidth: 1,
-    fontSize: 14,
+    paddingVertical: 0,
+    fontSize: 13,
+    height: 36,
   },
   btn: {
-    height: 40,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    height: 36,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnText: { color: "#FFF", fontWeight: "600" },
+  btnText: {
+    fontWeight: "700",
+    fontSize: 13,
+  },
 });
