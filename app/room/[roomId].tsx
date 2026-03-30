@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   listContent: { paddingVertical: 6, paddingHorizontal: 8 },
   tabBarContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 4,
     borderBottomWidth: 1,
   },
   tabTrack: {
