@@ -12,7 +12,6 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -71,10 +70,10 @@ function RoomContent() {
         <Ionicons 
           name={icon} 
           size={16} 
-          color={isActive ? "#39008c" : theme.textSecondary} 
+          color={isActive ? theme.background : theme.textSecondary} 
           style={{ marginRight: 6 }} 
         />
-        <Text style={[styles.tabLabel, { color: isActive ? "#39008c" : theme.textSecondary }]}>
+        <Text style={[styles.tabLabel, { color: isActive ? theme.background : theme.textSecondary }]}>
           {label}
         </Text>
       </View>
@@ -87,20 +86,12 @@ function RoomContent() {
         style={styles.tab}
         activeOpacity={0.8}
       >
-        {isActive ? (
-          <LinearGradient
-            colors={["#ba9eff", "#8455ef"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.activePill}
-          >
-            {content}
-          </LinearGradient>
-        ) : (
-          <View style={styles.inactivePill}>
-            {content}
-          </View>
-        )}
+        <View style={[
+          isActive ? styles.activePill : styles.inactivePill,
+          isActive && { backgroundColor: theme.primary }
+        ]}>
+          {content}
+        </View>
       </TouchableOpacity>
     );
   };

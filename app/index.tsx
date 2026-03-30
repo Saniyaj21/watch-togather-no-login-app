@@ -10,7 +10,6 @@ import { useRouter } from "expo-router";
 import { createRoom } from "../lib/api";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -55,15 +54,15 @@ export default function HomeScreen() {
           <Text style={[styles.title, { color: theme.text }]}>
             Watch Together
           </Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary + "CC" }]}>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Watch videos in sync with friends
           </Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          {/* Glassmorphic Input */}
-          <View style={[styles.inputWrap, { borderColor: theme.border + "1A" }]}>
+          {/* Minimal Solid Input */}
+          <View style={[styles.inputWrap, { borderColor: theme.border, backgroundColor: theme.surface }]}>
             <TextInput
               style={[styles.input, { color: theme.text }]}
               value={name}
@@ -83,23 +82,20 @@ export default function HomeScreen() {
             </Text>
           ) : null}
 
-          {/* Create Room — gradient button */}
+          {/* Create Room — solid button */}
           <TouchableOpacity
             onPress={handleCreate}
             disabled={!name.trim() || creating}
-            style={[(!name.trim() || creating) && styles.btnDisabled]}
-            activeOpacity={0.85}
+            style={[
+              styles.solidBtn,
+              { backgroundColor: theme.primary },
+              (!name.trim() || creating) && styles.btnDisabled
+            ]}
+            activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={["#ba9eff", "#8455ef"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientBtn}
-            >
-              <Text style={styles.gradientBtnText}>
-                {creating ? "Creating..." : "Create Room"}
-              </Text>
-            </LinearGradient>
+            <Text style={[styles.solidBtnText, { color: theme.background }]}>
+              {creating ? "Creating..." : "Create Room"}
+            </Text>
           </TouchableOpacity>
 
           {/* Join Room — outline button */}
@@ -107,13 +103,13 @@ export default function HomeScreen() {
             onPress={handleJoin}
             style={[
               styles.outlineBtn,
-              { borderColor: theme.border + "4D" },
+              { borderColor: theme.border },
               !name.trim() && styles.btnDisabled,
             ]}
             disabled={!name.trim()}
-            activeOpacity={0.85}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.outlineBtnText, { color: theme.primary }]}>
+            <Text style={[styles.outlineBtnText, { color: theme.text }]}>
               Join Room
             </Text>
           </TouchableOpacity>
@@ -128,60 +124,61 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 80,
   },
   header: {
     alignItems: "center",
     marginBottom: 64,
   },
   title: {
-    fontSize: 42,
-    fontWeight: "800",
+    fontSize: 40,
+    fontWeight: "900",
     textAlign: "center",
-    letterSpacing: -1.5,
-    marginBottom: 8,
+    letterSpacing: -1,
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
-    fontWeight: "500",
-    letterSpacing: -0.3,
+    fontWeight: "600",
+    letterSpacing: -0.2,
   },
   form: { gap: 16 },
   inputWrap: {
-    backgroundColor: "rgba(32, 37, 52, 0.3)",
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    paddingHorizontal: 20,
   },
   input: {
-    height: 60,
-    fontSize: 18,
+    height: 56,
+    fontSize: 16,
+    fontWeight: "600",
   },
-  gradientBtn: {
-    height: 60,
-    borderRadius: 999,
+  solidBtn: {
+    height: 56,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  gradientBtnText: {
-    color: "#39008c",
-    fontSize: 18,
-    fontWeight: "700",
+  solidBtnText: {
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   outlineBtn: {
-    height: 60,
-    borderRadius: 999,
+    height: 56,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
+    borderWidth: 1.5,
     backgroundColor: "transparent",
   },
   outlineBtnText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   btnDisabled: { opacity: 0.5 },
-  errorText: { fontSize: 13, textAlign: "center" },
+  errorText: { fontSize: 13, textAlign: "center", fontWeight: "600" },
 });
 

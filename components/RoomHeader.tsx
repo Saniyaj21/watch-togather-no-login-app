@@ -24,13 +24,13 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
 
   return (
     <>
-      <View style={[styles.container, { backgroundColor: "rgba(10, 14, 24, 0.8)", borderBottomColor: theme.border + "1A" }]}>
+      <View style={[styles.container, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
         <View style={styles.left}>
-          <TouchableOpacity onPress={copyRoomId} activeOpacity={0.7} style={[styles.roomBadge, { backgroundColor: theme.primary + "1A", borderColor: theme.primary + "33" }]}>
-            <Text style={[styles.roomIdText, { color: theme.primary }]}>
+          <TouchableOpacity onPress={copyRoomId} activeOpacity={0.7} style={[styles.roomBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.roomIdText, { color: theme.textSecondary }]}>
                {roomId}
             </Text>
-            <Ionicons name="copy-outline" size={12} color={theme.primary} style={{ marginLeft: 4 }} />
+            <Ionicons name="copy-outline" size={12} color={theme.textSecondary} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
 
@@ -38,9 +38,9 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
           <TouchableOpacity 
             onPress={onLeave} 
             activeOpacity={0.7}
-            style={[styles.leaveBtn, { backgroundColor: "rgba(255, 69, 58, 0.1)", borderColor: "rgba(255, 69, 58, 0.2)" }]}
+            style={[styles.leaveBtn, { backgroundColor: theme.danger + "10", borderColor: theme.danger + "20" }]}
           >
-            <Text style={[styles.leaveText, { color: "#ff453a" }]}>Leave</Text>
+            <Text style={[styles.leaveText, { color: theme.danger }]}>Leave</Text>
           </TouchableOpacity>
         </View>
       </View>

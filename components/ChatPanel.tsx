@@ -96,7 +96,7 @@ export default function ChatPanel({ myName }: Props) {
         styles.inputRow, 
         { paddingBottom: Platform.OS === 'android' ? (keyboardHeight > 0 ? keyboardHeight + 17 : insets.bottom) : (keyboardHeight > 0 ? 0 : insets.bottom) }
       ]}>
-        <View style={[styles.inputInner, { borderColor: theme.border + "33" }]}>
+        <View style={[styles.inputInner, { borderColor: theme.border, backgroundColor: theme.surface }]}>
           <TextInput
             style={[styles.input, { color: theme.text }]}
             value={text}
@@ -111,7 +111,7 @@ export default function ChatPanel({ myName }: Props) {
             onPress={handleSend}
             activeOpacity={0.7}
           >
-            <Ionicons name="send" size={18} color="#39008c" />
+            <Ionicons name="send" size={18} color={theme.background} />
           </TouchableOpacity>
         </View>
       </View>
@@ -131,13 +131,12 @@ const styles = StyleSheet.create({
   inputInner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(32, 37, 52, 0.5)",
-    paddingLeft: 12,
+    paddingLeft: 16,
     paddingRight: 4,
-    paddingVertical: 2,
-    borderRadius: 999,
-    borderWidth: 1,
-    gap: 6,
+    paddingVertical: 4,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    gap: 8,
   },
   input: {
     flex: 1,

@@ -11,7 +11,6 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
 import { joinRoom } from "../lib/api";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function JoinRoomScreen() {
   const router = useRouter();
@@ -56,7 +55,7 @@ export default function JoinRoomScreen() {
 
         {/* Code Input */}
         <View style={styles.inputSection}>
-          <View style={[styles.inputWrap, { borderColor: error ? theme.danger + "66" : theme.border + "26" }]}>
+          <View style={[styles.inputWrap, { borderColor: error ? theme.danger : theme.border, backgroundColor: theme.surface }]}>
             <TextInput
               style={[styles.input, { color: theme.text }]}
               value={roomId}
@@ -65,7 +64,7 @@ export default function JoinRoomScreen() {
                 setError(null);
               }}
               placeholder="A1B2C3"
-              placeholderTextColor={theme.textSecondary + "33"}
+              placeholderTextColor={theme.textSecondary + "40"}
               autoCapitalize="characters"
               maxLength={6}
               textAlign="center"
@@ -78,25 +77,22 @@ export default function JoinRoomScreen() {
             <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>
           )}
 
-          {/* Join Button — gradient */}
+          {/* Join Button — solid */}
           <TouchableOpacity
             onPress={handleJoin}
             disabled={loading || !roomId.trim()}
-            style={[(loading || !roomId.trim()) && styles.btnDisabled]}
-            activeOpacity={0.85}
+            style={[
+              styles.solidBtn,
+              { backgroundColor: theme.primary },
+              (loading || !roomId.trim()) && styles.btnDisabled
+            ]}
+            activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={["#ba9eff", "#8455ef"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientBtn}
-            >
-              {loading ? (
-                <ActivityIndicator color="#39008c" />
-              ) : (
-                <Text style={styles.gradientBtnText}>Join Room</Text>
-              )}
-            </LinearGradient>
+            {loading ? (
+              <ActivityIndicator color={theme.background} />
+            ) : (
+              <Text style={[styles.solidBtnText, { color: theme.background }]}>Join Room</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -109,49 +105,49 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 80,
   },
   header: {
     alignItems: "center",
     marginBottom: 48,
-    gap: 8,
+    gap: 12,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: 32,
+    fontWeight: "900",
     textAlign: "center",
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
+    fontWeight: "600",
   },
   inputSection: {
     gap: 32,
   },
   inputWrap: {
-    backgroundColor: "rgba(32, 37, 52, 0.3)",
     borderWidth: 2,
-    borderRadius: 16,
+    borderRadius: 24,
   },
   input: {
-    height: 80,
-    fontSize: 36,
-    fontWeight: "700",
-    letterSpacing: 16,
+    height: 100,
+    fontSize: 48,
+    fontWeight: "900",
+    letterSpacing: 20,
     paddingHorizontal: 32,
   },
-  error: { fontSize: 14, textAlign: "center", marginTop: -16 },
-  gradientBtn: {
+  error: { fontSize: 14, textAlign: "center", marginTop: -16, fontWeight: "600" },
+  solidBtn: {
     height: 60,
-    borderRadius: 999,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
-  gradientBtnText: {
-    color: "#39008c",
+  solidBtnText: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   btnDisabled: { opacity: 0.5 },
 });
