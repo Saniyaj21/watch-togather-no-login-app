@@ -17,21 +17,20 @@ export default function YouTubePlayer({ url }: Props) {
   useEffect(() => {
     if (!playerReady || !playerRef.current) return;
 
-    const syncPlayback = async () => {
-      syncLockRef.current = true;
-      try {
-        const elapsed = await playerRef.current.getCurrentTime();
-        const diff = Math.abs(elapsed - state.currentTime);
-        if (diff > 2) {
-          playerRef.current.seekTo(state.currentTime, true);
-        }
-      } catch {}
+    // Set lock synchronously before React commits the updated `play` prop to the
+    // WebView — this prevents onStateChange from re-emitting the remote event.
+    syncLockRef.current = true;
+
+    playerRef.current.getCurrentTime().then((elapsed: number) => {
+      const diff = Math.abs(elapsed - state.currentTime);
+      if (diff > 2) {
+        playerRef.current.seekTo(state.currentTime, true);
+      }
+    }).catch(() => {}).finally(() => {
       setTimeout(() => {
         syncLockRef.current = false;
-      }, 500);
-    };
-
-    syncPlayback();
+      }, 1000);
+    });
   }, [state.currentTime, state.isPlaying, playerReady]);
 
   const onStateChange = useCallback(

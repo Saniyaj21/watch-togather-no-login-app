@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
-import { getVideoType, toEmbedUrl } from "../lib/videoUtils";
+import { getVideoType, toEmbedUrl, isDirectVideoUrl } from "../lib/videoUtils";
 
 export default function UrlInput() {
   const { theme } = useTheme();
@@ -13,7 +13,8 @@ export default function UrlInput() {
     const trimmed = url.trim();
     if (!trimmed) return;
     const videoType = getVideoType(trimmed);
-    const embedUrl = videoType === "youtube" ? trimmed : toEmbedUrl(trimmed);
+    // YouTube and direct video files are used as-is; only website URLs need embed conversion
+    const embedUrl = videoType === "youtube" || videoType === "direct" ? trimmed : toEmbedUrl(trimmed);
     changeVideo(embedUrl, videoType);
     setUrl("");
   };

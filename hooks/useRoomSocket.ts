@@ -10,7 +10,7 @@ type RoomState = {
   connected: boolean;
   participants: Participant[];
   videoUrl: string | null;
-  videoType: "youtube" | "iframe" | null;
+  videoType: "youtube" | "direct" | "iframe" | null;
   isPlaying: boolean;
   currentTime: number;
   messages: Message[];
@@ -65,7 +65,7 @@ function reducer(state: RoomState, action: Action): RoomState {
       return {
         ...state,
         videoUrl: action.url,
-        videoType: action.videoType as "youtube" | "iframe",
+        videoType: action.videoType as "youtube" | "direct" | "iframe",
         isPlaying: false,
         currentTime: 0,
       };
@@ -79,7 +79,7 @@ function reducer(state: RoomState, action: Action): RoomState {
       return {
         ...state,
         videoUrl: action.url,
-        videoType: action.videoType as "youtube" | "iframe",
+        videoType: action.videoType as "youtube" | "direct" | "iframe",
         isPlaying: action.isPlaying,
         currentTime: action.currentTime,
       };

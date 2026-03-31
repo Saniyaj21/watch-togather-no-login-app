@@ -1,7 +1,10 @@
-export type VideoType = "youtube" | "iframe";
+export type VideoType = "youtube" | "direct" | "iframe";
 
 const YOUTUBE_REGEX =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+// Direct video file extensions (including before query params)
+const DIRECT_VIDEO_REGEX = /\.(mp4|m3u8|webm|mov|avi|mkv|ogg|3gp|ts|flv)(\?.*)?$/i;
 
 export const isYouTubeUrl = (url: string): boolean => {
   return YOUTUBE_REGEX.test(url);
@@ -12,8 +15,19 @@ export const extractYouTubeId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
+export const isDirectVideoUrl = (url: string): boolean => {
+  try {
+    const { pathname } = new URL(url);
+    return DIRECT_VIDEO_REGEX.test(pathname);
+  } catch {
+    return DIRECT_VIDEO_REGEX.test(url);
+  }
+};
+
 export const getVideoType = (url: string): VideoType => {
-  return isYouTubeUrl(url) ? "youtube" : "iframe";
+  if (isYouTubeUrl(url)) return "youtube";
+  if (isDirectVideoUrl(url)) return "direct";
+  return "iframe";
 };
 
 /**

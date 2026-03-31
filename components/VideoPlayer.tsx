@@ -2,8 +2,9 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoom } from "../contexts/RoomContext";
 import { useTheme } from "../contexts/ThemeContext";
-import { isYouTubeUrl } from "../lib/videoUtils";
+import { isYouTubeUrl, isDirectVideoUrl } from "../lib/videoUtils";
 import YouTubePlayer from "./YouTubePlayer";
+import DirectVideoPlayer from "./DirectVideoPlayer";
 import IframePlayer from "./IframePlayer";
 
 export default function VideoPlayer() {
@@ -28,6 +29,10 @@ export default function VideoPlayer() {
 
   if (isYouTubeUrl(state.videoUrl)) {
     return <YouTubePlayer url={state.videoUrl} />;
+  }
+
+  if (isDirectVideoUrl(state.videoUrl)) {
+    return <DirectVideoPlayer url={state.videoUrl} />;
   }
 
   return <IframePlayer url={state.videoUrl} />;

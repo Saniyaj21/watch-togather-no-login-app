@@ -91,20 +91,28 @@ export const INJECTED_JS = `
     if (!_video) return;
     _syncLock = true;
     _video.currentTime = time;
-    _video.play().finally(() => { _syncLock = false; });
+    var onPlay = function() {
+      _video.removeEventListener('play', onPlay);
+      setTimeout(function() { _syncLock = false; }, 200);
+    };
+    _video.addEventListener('play', onPlay);
+    _video.play().catch(function() {
+      _video.removeEventListener('play', onPlay);
+      _syncLock = false;
+    });
   };
   window._wtPause = function(time) {
     if (!_video) return;
     _syncLock = true;
     _video.currentTime = time;
     _video.pause();
-    setTimeout(() => { _syncLock = false; }, 100);
+    setTimeout(() => { _syncLock = false; }, 200);
   };
   window._wtSeek = function(time) {
     if (!_video) return;
     _syncLock = true;
     _video.currentTime = time;
-    setTimeout(() => { _syncLock = false; }, 100);
+    setTimeout(() => { _syncLock = false; }, 200);
   };
 })();
 true;
