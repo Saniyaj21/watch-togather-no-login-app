@@ -61,7 +61,7 @@ export default function ParticipantList({ visible, onClose, myName }: Props) {
             <View
               style={[
                 styles.row,
-                { backgroundColor: "rgba(32, 37, 52, 0.3)", borderColor: theme.border + "1A" },
+                { backgroundColor: theme.surface, borderColor: theme.border },
               ]}
             >
               <View style={styles.nameContainer}>
@@ -82,9 +82,9 @@ export default function ParticipantList({ visible, onClose, myName }: Props) {
               {isHost && !isMe && (
                 <TouchableOpacity
                   onPress={() => kickUser(item.socketId)}
-                  style={[styles.kickBtn, { backgroundColor: "rgba(255, 69, 58, 0.1)", borderColor: "rgba(255, 69, 58, 0.2)" }]}
+                  style={[styles.kickBtn, { backgroundColor: theme.danger + "1A", borderColor: theme.danger + "33" }]}
                 >
-                  <Text style={styles.kickText}>Kick</Text>
+                  <Text style={[styles.kickText, { color: theme.danger }]}>Kick</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
   },
-  kickText: { color: "#ff453a", fontWeight: "700", fontSize: 11 },
+  kickText: { fontWeight: "700", fontSize: 11 },
   emptyText: { textAlign: "center", padding: 32, fontSize: 14 },
 });
 

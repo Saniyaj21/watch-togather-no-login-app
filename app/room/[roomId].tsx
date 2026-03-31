@@ -65,33 +65,25 @@ function RoomContent() {
 
   const renderTab = (index: number, icon: any, label: string | number) => {
     const isActive = activeTab === index;
-    const content = (
-      <View style={styles.tabContent}>
-        <Ionicons 
-          name={icon} 
-          size={16} 
-          color={isActive ? theme.background : theme.textSecondary} 
-          style={{ marginRight: 6 }} 
-        />
-        <Text style={[styles.tabLabel, { color: isActive ? theme.background : theme.textSecondary }]}>
-          {label}
-        </Text>
-      </View>
-    );
-
     return (
       <TouchableOpacity
         key={index}
         onPress={() => handleTabPress(index)}
         style={styles.tab}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <View style={[
-          isActive ? styles.activePill : styles.inactivePill,
-          isActive && { backgroundColor: theme.primary }
-        ]}>
-          {content}
+        <View style={styles.tabContent}>
+          <Ionicons
+            name={icon}
+            size={15}
+            color={isActive ? theme.primary : theme.textSecondary}
+            style={{ marginRight: 5 }}
+          />
+          <Text style={[styles.tabLabel, { color: isActive ? theme.primary : theme.textSecondary }]}>
+            {label}
+          </Text>
         </View>
+        <View style={[styles.tabUnderline, isActive && { backgroundColor: theme.primary }]} />
       </TouchableOpacity>
     );
   };
@@ -112,7 +104,7 @@ function RoomContent() {
         keyboardVerticalOffset={0}
       >
           {/* Tab Navigation */}
-          <View style={[styles.tabBarContainer, { borderBottomColor: theme.border + "1A" }]}>
+          <View style={[styles.tabBarContainer, { borderBottomColor: theme.border }]}>
             <View style={styles.tabTrack}>
               {renderTab(0, "play", "Video")}
               {renderTab(1, "chatbubble", "Chat")}
@@ -133,15 +125,15 @@ function RoomContent() {
               {/* Tab 0: Load Video */}
               <View style={{ width: SCREEN_WIDTH }}>
                 <View style={styles.videoTabContainer}>
+                  <View style={styles.urlInputWrapper}>
+                    <UrlInput />
+                  </View>
                   <Text style={[styles.videoTabHeadline, { color: theme.textSecondary }]}>
                     Want to watch something else?
                   </Text>
                   <Text style={[styles.videoTabSubline, { color: theme.textSecondary + "99" }]}>
-                    Paste a new video URL below to sync it to the room.
+                    Paste a new video URL above to sync it to the room.
                   </Text>
-                  <View style={styles.urlInputWrapper}>
-                    <UrlInput />
-                  </View>
                 </View>
               </View>
 
@@ -180,33 +172,31 @@ const styles = StyleSheet.create({
   listContent: { paddingVertical: 6, paddingHorizontal: 8 },
   tabBarContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 4,
     borderBottomWidth: 1,
   },
   tabTrack: {
     flexDirection: "row",
-    gap: 6,
   },
   tab: {
     flex: 1,
-  },
-  activePill: {
-    borderRadius: 12,
-    paddingVertical: 8,
     alignItems: "center",
-    justifyContent: "center",
-  },
-  inactivePill: {
-    paddingVertical: 8,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 10,
   },
   tabContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  tabLabel: { fontSize: 13, fontWeight: "800" },
+  tabUnderline: {
+    position: "absolute",
+    bottom: 0,
+    left: "15%",
+    right: "15%",
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: "transparent",
+  },
+  tabLabel: { fontSize: 13, fontWeight: "700" },
   videoTabContainer: {
     padding: 16,
     alignItems: "center",

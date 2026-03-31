@@ -21,7 +21,7 @@ export default function UrlInput() {
 
   return (
     <View style={[styles.outer, { backgroundColor: theme.inputBackground }]}>
-      <View style={[styles.pill, { backgroundColor: "#000000", borderColor: theme.border + "80" }]}>
+      <View style={[styles.pill, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <TextInput
           style={[styles.input, { color: theme.text }]}
           value={url}
@@ -34,7 +34,7 @@ export default function UrlInput() {
           onSubmitEditing={handleSubmit}
         />
         <TouchableOpacity onPress={handleSubmit} style={[styles.btn, { backgroundColor: theme.primary }]}>
-          <Text style={[styles.btnText, { color: "#39008c" }]}>Load</Text>
+          <Text style={[styles.btnText, { color: theme.background }]}>Load</Text>
         </TouchableOpacity>
       </View>
     </View>
