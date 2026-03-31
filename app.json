@@ -4,7 +4,7 @@
     "slug": "watch-togather",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/watch-togather-light.png",
+    "icon": "./assets/watch-togather-dark.png",
     "userInterfaceStyle": "automatic",
     "scheme": "watch-togather",
     "splash": {
@@ -21,10 +21,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/watch-togather-light.png",
+        "foregroundImage": "./assets/watch-togather-dark.png",
         "monochromeImage": "./assets/watch-togather-dark.png",
-        "backgroundColor": "#ffffff",
-        "backgroundColorDark": "#000000"
+        "backgroundColor": "#000000"
       },
       "package": "com.saniyaj.watchtogather",
       "softwareKeyboardLayoutMode": "resize"
