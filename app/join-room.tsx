@@ -20,8 +20,8 @@ export default function JoinRoomScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleJoin = async () => {
-    const code = roomId.trim().toUpperCase();
+  const handleJoin = async (overrideCode?: string) => {
+    const code = (overrideCode ?? roomId).trim().toUpperCase();
     if (!code) return;
 
     setLoading(true);
@@ -60,8 +60,12 @@ export default function JoinRoomScreen() {
               style={[styles.input, { color: theme.text }]}
               value={roomId}
               onChangeText={(val) => {
-                setRoomId(val.toUpperCase());
+                const upper = val.toUpperCase();
+                setRoomId(upper);
                 setError(null);
+                if (upper.length === 6) {
+                  setTimeout(() => handleJoin(upper), 0);
+                }
               }}
               placeholder="A1B2C3"
               placeholderTextColor={theme.textSecondary + "40"}
