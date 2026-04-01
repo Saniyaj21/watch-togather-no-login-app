@@ -36,6 +36,7 @@ function RoomContent() {
   const { state } = useRoom();
 
   const [activeTab, setActiveTab] = useState<number>(1);
+  const [videoCollapsed, setVideoCollapsed] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   // ── Unread badge ──────────────────────────────────────────────────────────
@@ -167,7 +168,22 @@ function RoomContent() {
     >
       <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
 
-      <VideoPlayer />
+      <View style={videoCollapsed ? styles.videoHidden : undefined}>
+        <VideoPlayer />
+      </View>
+
+      {/* Collapse / expand toggle strip */}
+      <TouchableOpacity
+        onPress={() => setVideoCollapsed((v) => !v)}
+        style={[styles.collapseStrip, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
+        activeOpacity={0.7}
+      >
+        <Ionicons
+          name={videoCollapsed ? "chevron-down" : "chevron-up"}
+          size={14}
+          color={theme.textSecondary}
+        />
+      </TouchableOpacity>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -282,6 +298,13 @@ export default function RoomScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   contentArea: { flex: 1 },
+  videoHidden: { display: "none" },
+  collapseStrip: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+  },
   tabBarContainer: {
     paddingHorizontal: 16,
     borderBottomWidth: 1,

@@ -22,7 +22,7 @@ type Props = { myName: string };
 export default function ChatPanel({ myName }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { state, sendChat, sendTyping } = useRoom();
+  const { state, sendChat, sendTyping, markSeen } = useRoom();
   const [text, setText] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const flatListRef = useRef<FlatList>(null);
@@ -55,7 +55,24 @@ export default function ChatPanel({ myName }: Props) {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
+    // Mark messages as seen whenever the list updates (panel is mounted = chat tab is open)
+    const lastReal = [...state.messages].reverse().find((m) => !m.isSystem);
+    if (lastReal) markSeen(lastReal.createdAt);
   }, [state.messages.length]);
+
+  useEffect(() => {
+    if (state.typingUsers.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [state.typingUsers.length]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [state.seenData]);
 
   const handleSend = () => {
     const trimmed = text.trim();
@@ -68,6 +85,16 @@ export default function ChatPanel({ myName }: Props) {
     setText(val);
     if (val.trim()) sendTyping();
   };
+
+  // Index of the last message sent by self (non-system) — for read receipt placement
+  const lastSelfIndex = state.messages.reduce(
+    (acc, m, i) => (!m.isSystem && m.senderName === myName ? i : acc),
+    -1
+  );
+
+  // Count of others who have seen up to a given message's createdAt
+  const seenCountFor = (createdAt: string) =>
+    state.seenData.filter((s) => s.name !== myName && s.lastSeenAt >= createdAt).length;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -88,6 +115,7 @@ export default function ChatPanel({ myName }: Props) {
 
           const prevMessage = index > 0 ? state.messages[index - 1] : null;
           const showName = !prevMessage || prevMessage.senderName !== item.senderName || prevMessage.isSystem;
+          const seenCount = index === lastSelfIndex ? seenCountFor(item.createdAt) : 0;
 
           return (
             <ChatMessage
@@ -95,14 +123,15 @@ export default function ChatPanel({ myName }: Props) {
               text={item.text}
               isSelf={item.senderName === myName}
               showName={showName}
+              seenCount={seenCount}
             />
           );
         }}
+        ListFooterComponent={<TypingIndicator typingUsers={state.typingUsers} />}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
       />
-      <TypingIndicator typingUsers={state.typingUsers} />
       <View style={[
         styles.inputRow, 
         { paddingBottom: Platform.OS === 'android' ? (keyboardHeight > 0 ? keyboardHeight + 17 : insets.bottom) : (keyboardHeight > 0 ? 0 : insets.bottom) }

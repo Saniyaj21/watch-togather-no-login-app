@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -260,6 +261,8 @@ const illustration = StyleSheet.create({
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
+const NAME_STORAGE_KEY = "wt_user_name";
+
 export default function HomeScreen() {
   const router = useRouter();
   const { theme, isDark, toggleTheme } = useTheme();
@@ -267,11 +270,20 @@ export default function HomeScreen() {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
 
+  useEffect(() => {
+    AsyncStorage.getItem(NAME_STORAGE_KEY).then((saved) => {
+      if (saved) setName(saved);
+    });
+  }, []);
+
+  const saveName = (n: string) => AsyncStorage.setItem(NAME_STORAGE_KEY, n);
+
   const handleCreate = async () => {
     if (!name.trim()) { setError("Enter your name to continue"); return; }
     setError("");
     setCreating(true);
     try {
+      await saveName(name.trim());
       const data = await createRoom(name.trim());
       router.replace({ pathname: "/room/[roomId]", params: { roomId: data.roomId, name: name.trim() } });
     } catch {
@@ -284,6 +296,7 @@ export default function HomeScreen() {
   const handleJoin = () => {
     if (!name.trim()) { setError("Enter your name to continue"); return; }
     setError("");
+    saveName(name.trim());
     router.push({ pathname: "/join-room", params: { name: name.trim() } });
   };
 
@@ -331,6 +344,14 @@ export default function HomeScreen() {
             autoCapitalize="words"
             returnKeyType="done"
           />
+          {name.length > 0 && (
+            <TouchableOpacity
+              onPress={() => { setName(""); AsyncStorage.removeItem(NAME_STORAGE_KEY); }}
+              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            >
+              <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
         {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
 

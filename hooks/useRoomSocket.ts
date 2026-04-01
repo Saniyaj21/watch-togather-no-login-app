@@ -5,6 +5,7 @@ import { createSocket } from "../lib/socket";
 
 type Participant = { socketId: string; name: string };
 type Message = { senderName: string; text: string; createdAt: string; isSystem?: boolean };
+type SeenEntry = { name: string; lastSeenAt: string };
 
 type RoomState = {
   connected: boolean;
@@ -15,6 +16,7 @@ type RoomState = {
   currentTime: number;
   messages: Message[];
   typingUsers: string[];
+  seenData: SeenEntry[];
   hostName: string | null;
   kicked: boolean;
 };
@@ -37,6 +39,7 @@ type Action =
   | { type: "CHAT_HISTORY"; messages: Message[] }
   | { type: "CHAT_RECEIVED"; message: Message }
   | { type: "USER_TYPING"; name: string; isTyping: boolean }
+  | { type: "SEEN_UPDATE"; seenData: SeenEntry[] }
   | { type: "HOST_CHANGED"; hostName: string }
   | { type: "KICKED" };
 
@@ -49,6 +52,7 @@ const initialState: RoomState = {
   currentTime: 0,
   messages: [],
   typingUsers: [],
+  seenData: [],
   hostName: null,
   kicked: false,
 };
@@ -94,6 +98,8 @@ function reducer(state: RoomState, action: Action): RoomState {
         typingUsers: action.isTyping ? [...filtered, action.name] : filtered,
       };
     }
+    case "SEEN_UPDATE":
+      return { ...state, seenData: action.seenData };
     case "HOST_CHANGED":
       return { ...state, hostName: action.hostName };
     case "KICKED":
@@ -179,6 +185,9 @@ export const useRoomSocket = (roomId: string, name: string) => {
     socket.on("chat:user-typing", ({ name: userName, isTyping }) => {
       dispatch({ type: "USER_TYPING", name: userName, isTyping });
     });
+    socket.on("chat:seen-update", ({ seenData }: { seenData: SeenEntry[] }) => {
+      dispatch({ type: "SEEN_UPDATE", seenData });
+    });
 
     socket.on("room:host-changed", ({ hostName }) => {
       dispatch({ type: "HOST_CHANGED", hostName });
@@ -246,6 +255,10 @@ export const useRoomSocket = (roomId: string, name: string) => {
     socketRef.current?.emit("room:kick", { socketId });
   }, []);
 
+  const markSeen = useCallback((lastSeenAt: string) => {
+    socketRef.current?.emit("chat:seen", { lastSeenAt });
+  }, []);
+
   return {
     state,
     sendChat,
@@ -255,5 +268,6 @@ export const useRoomSocket = (roomId: string, name: string) => {
     pauseVideo,
     seekVideo,
     kickUser,
+    markSeen,
   };
 };

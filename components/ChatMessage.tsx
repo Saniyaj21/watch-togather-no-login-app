@@ -7,9 +7,10 @@ type Props = {
   text: string;
   isSelf: boolean;
   showName: boolean;
+  seenCount?: number;
 };
 
-export default function ChatMessage({ senderName, text, isSelf, showName }: Props) {
+export default function ChatMessage({ senderName, text, isSelf, showName, seenCount = 0 }: Props) {
   const { theme } = useTheme();
 
   return (
@@ -49,6 +50,11 @@ export default function ChatMessage({ senderName, text, isSelf, showName }: Prop
           {text}
         </Text>
       </View>
+      {isSelf && seenCount > 0 && (
+        <Text style={[styles.seenText, { color: theme.textSecondary }]}>
+          Seen by {seenCount}
+        </Text>
+      )}
     </View>
   );
 }
@@ -74,4 +80,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   text: { fontSize: 14, lineHeight: 18 },
+  seenText: {
+    fontSize: 10,
+    fontWeight: "600",
+    marginTop: 2,
+    marginRight: 4,
+  },
 });
