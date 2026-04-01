@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ScrollView,
   Dimensions,
@@ -168,7 +169,10 @@ function RoomContent() {
     >
       <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
 
-      <View style={videoCollapsed ? styles.videoHidden : undefined}>
+      <View
+        style={videoCollapsed ? styles.videoHidden : undefined}
+        onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}
+      >
         <VideoPlayer />
       </View>
 
