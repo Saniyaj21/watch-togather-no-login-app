@@ -1,6 +1,6 @@
-import React, { useRef, useCallback, useState, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import YTPlayer from "react-native-youtube-iframe";
+import { YoutubeView, useYouTubePlayer, useYouTubeEvent, PlayerState } from "react-native-youtube-bridge";
 import { extractYouTubeId } from "../lib/videoUtils";
 import { useRoom } from "../contexts/RoomContext";
 
@@ -8,74 +8,49 @@ type Props = { url: string };
 
 export default function YouTubePlayer({ url }: Props) {
   const videoId = extractYouTubeId(url);
-  const { state, playVideo, pauseVideo, seekVideo } = useRoom();
-  const playerRef = useRef<any>(null);
+  const { state, playVideo, pauseVideo } = useRoom();
+  const player = useYouTubePlayer(videoId ?? null, { controls: true, playsinline: true });
   const syncLockRef = useRef(false);
-  const [playerReady, setPlayerReady] = useState(false);
 
-  // Sync playback state from socket events
+  // Push play/pause + seek from socket events directly into the player
   useEffect(() => {
-    if (!playerReady || !playerRef.current) return;
-
-    // Set lock synchronously before React commits the updated `play` prop to the
-    // WebView — this prevents onStateChange from re-emitting the remote event.
     syncLockRef.current = true;
 
-    playerRef.current.getCurrentTime().then((elapsed: number) => {
-      const diff = Math.abs(elapsed - state.currentTime);
-      if (diff > 2) {
-        playerRef.current.seekTo(state.currentTime, true);
-      }
-    }).catch(() => {}).finally(() => {
-      setTimeout(() => {
-        syncLockRef.current = false;
-      }, 1000);
-    });
-  }, [state.currentTime, state.isPlaying, playerReady]);
+    if (state.isPlaying) {
+      player.seekTo(state.currentTime, true);
+      player.play();
+    } else {
+      player.seekTo(state.currentTime, true);
+      player.pause();
+    }
 
-  const onStateChange = useCallback(
-    (event: string) => {
-      if (syncLockRef.current) return;
+    const t = setTimeout(() => { syncLockRef.current = false; }, 1000);
+    return () => clearTimeout(t);
+  }, [state.isPlaying, state.currentTime]);
 
-      if (event === "playing") {
-        playerRef.current?.getCurrentTime().then((time: number) => {
-          playVideo(time);
-        });
-      } else if (event === "paused") {
-        playerRef.current?.getCurrentTime().then((time: number) => {
-          pauseVideo(time);
-        });
-      }
-    },
-    [playVideo, pauseVideo]
-  );
+  // Detect user's own play/pause on this device → emit to socket
+  useYouTubeEvent(player, "stateChange", async (playerState) => {
+    if (syncLockRef.current) return;
+
+    if (playerState === PlayerState.PLAYING) {
+      const time = await player.getCurrentTime();
+      playVideo(time ?? 0);
+    } else if (playerState === PlayerState.PAUSED) {
+      const time = await player.getCurrentTime();
+      pauseVideo(time ?? 0);
+    }
+  }, [playVideo, pauseVideo]);
 
   if (!videoId) return null;
 
   return (
     <View style={styles.container}>
-      <YTPlayer
-        ref={playerRef}
-        height={220}
-        videoId={videoId}
-        play={state.isPlaying}
-        onChangeState={onStateChange}
-        onReady={() => setPlayerReady(true)}
-        webViewProps={{
-          allowsInlineMediaPlayback: true,
-          onShouldStartLoadWithRequest: (request: any) => {
-            // Only allow YouTube domains
-            if (request.url.includes("youtube.com") || request.url.includes("ytimg.com") || request.url.includes("google.com") || request.url.includes("about:blank")) {
-              return true;
-            }
-            return false;
-          },
-        }}
-      />
+      <YoutubeView player={player} style={styles.player} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { width: "100%", overflow: "hidden" },
+  container: { width: "100%", height: 220 },
+  player: { flex: 1 },
 });
