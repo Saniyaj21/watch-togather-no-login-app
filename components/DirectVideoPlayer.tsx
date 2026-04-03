@@ -3,11 +3,17 @@ import { StyleSheet, View } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRoom } from "../contexts/RoomContext";
 
-type Props = { url: string };
+type Props = {
+  url: string;
+  onVideoEnd?: () => void;
+};
 
-export default function DirectVideoPlayer({ url }: Props) {
+export default function DirectVideoPlayer({ url, onVideoEnd }: Props) {
   const { state, playVideo, pauseVideo, seekVideo } = useRoom();
   const syncLockRef = useRef(false);
+  const onVideoEndRef = useRef(onVideoEnd);
+  onVideoEndRef.current = onVideoEnd;
+
   // Refs so event listeners always read the latest values without re-subscribing
   const currentTimeRef = useRef(state.currentTime);
   const isPlayingRef = useRef(state.isPlaying);
@@ -51,7 +57,7 @@ export default function DirectVideoPlayer({ url }: Props) {
     }, 1000);
   }, [state.isPlaying, state.currentTime]);
 
-  // Emit user-initiated play / pause / seek back to socket
+  // Emit user-initiated play / pause / seek back to socket, and detect video end
   useEffect(() => {
     const playingSub = player.addListener("playingChange", ({ isPlaying }) => {
       if (syncLockRef.current) return;
@@ -71,9 +77,19 @@ export default function DirectVideoPlayer({ url }: Props) {
       }
     });
 
+    const statusSub = player.addListener("statusChange", ({ status }) => {
+      if (status === "idle" && !syncLockRef.current) {
+        // expo-video: when playback finishes status goes to idle
+        if (onVideoEndRef.current) {
+          onVideoEndRef.current();
+        }
+      }
+    });
+
     return () => {
       playingSub.remove();
       timeSub.remove();
+      statusSub.remove();
     };
   }, [player]);
 

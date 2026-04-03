@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import VideoPlayer from "../../components/VideoPlayer";
 import UrlInput from "../../components/UrlInput";
 import ChatPanel from "../../components/ChatPanel";
 import ParticipantList from "../../components/ParticipantList";
+import QueuePanel from "../../components/QueuePanel";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -34,7 +35,7 @@ function RoomContent() {
   }>();
   const router = useRouter();
   const { theme } = useTheme();
-  const { state } = useRoom();
+  const { state, advanceQueue } = useRoom();
 
   const [activeTab, setActiveTab] = useState<number>(1);
   const [videoCollapsed, setVideoCollapsed] = useState(false);
@@ -127,6 +128,14 @@ function RoomContent() {
     }
   };
 
+  // ── Queue advance when video ends ─────────────────────────────────────────
+  const handleVideoEnd = useCallback(() => {
+    // Only advance if there's a queue active
+    if (state.queue.length > 0 && state.currentQueueIndex >= 0) {
+      advanceQueue();
+    }
+  }, [state.queue.length, state.currentQueueIndex, advanceQueue]);
+
   const renderTab = (index: number, icon: any, label: string | number) => {
     const isActive = activeTab === index;
     const showBadge = index === 1 && unreadCount > 0;
@@ -173,7 +182,7 @@ function RoomContent() {
         style={videoCollapsed ? styles.videoHidden : undefined}
         onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}
       >
-        <VideoPlayer />
+        <VideoPlayer onVideoEnd={handleVideoEnd} />
       </View>
 
       {/* Collapse / expand toggle strip */}
@@ -255,19 +264,22 @@ function RoomContent() {
             contentOffset={{ x: SCREEN_WIDTH, y: 0 }}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Tab 0: Load Video */}
-            <View style={{ width: SCREEN_WIDTH }}>
-              <View style={styles.videoTabContainer}>
-                <View style={styles.urlInputWrapper}>
-                  <UrlInput />
+            {/* Tab 0: Load Video + Queue */}
+            <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
+              <ScrollView
+                style={{ flex: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.videoTabScroll}
+              >
+                <UrlInput />
+                <View style={[styles.queueDivider, { borderTopColor: theme.border }]}>
+                  <Text style={[styles.queueSectionLabel, { color: theme.textSecondary }]}>
+                    Up Next
+                  </Text>
                 </View>
-                <Text style={[styles.videoTabHeadline, { color: theme.textSecondary }]}>
-                  Want to watch something else?
-                </Text>
-                <Text style={[styles.videoTabSubline, { color: theme.textSecondary + "99" }]}>
-                  Paste a new video URL above to sync it to the room.
-                </Text>
-              </View>
+                <QueuePanel myName={name || "Guest"} />
+              </ScrollView>
             </View>
 
             {/* Tab 1: Chat */}
@@ -386,23 +398,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "400",
   },
-  // Video tab
-  videoTabContainer: {
-    padding: 16,
-    alignItems: "center",
-    marginTop: 10,
+  videoTabScroll: {
+    paddingTop: 12,
   },
-  videoTabHeadline: {
-    fontSize: 16,
-    fontWeight: "800",
-    marginBottom: 4,
+  queueDivider: {
+    borderTopWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 4,
+    marginTop: 8,
   },
-  videoTabSubline: {
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  urlInputWrapper: {
-    width: "100%",
+  queueSectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
 });

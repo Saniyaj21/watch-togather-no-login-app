@@ -4,9 +4,12 @@ import { YoutubeView, useYouTubePlayer, useYouTubeEvent, PlayerState } from "rea
 import { extractYouTubeId } from "../lib/videoUtils";
 import { useRoom } from "../contexts/RoomContext";
 
-type Props = { url: string };
+type Props = {
+  url: string;
+  onVideoEnd?: () => void;
+};
 
-export default function YouTubePlayer({ url }: Props) {
+export default function YouTubePlayer({ url, onVideoEnd }: Props) {
   const videoId = extractYouTubeId(url);
   const { state, playVideo, pauseVideo } = useRoom();
   const player = useYouTubePlayer(videoId ?? null, { controls: true, playsinline: true });
@@ -38,8 +41,12 @@ export default function YouTubePlayer({ url }: Props) {
     } else if (playerState === PlayerState.PAUSED) {
       const time = await player.getCurrentTime();
       pauseVideo(time ?? 0);
+    } else if (playerState === PlayerState.ENDED) {
+      if (onVideoEnd) {
+        onVideoEnd();
+      }
     }
-  }, [playVideo, pauseVideo]);
+  }, [playVideo, pauseVideo, onVideoEnd]);
 
   if (!videoId) return null;
 

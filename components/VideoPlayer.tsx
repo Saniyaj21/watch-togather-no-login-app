@@ -7,7 +7,11 @@ import YouTubePlayer from "./YouTubePlayer";
 import DirectVideoPlayer from "./DirectVideoPlayer";
 import IframePlayer from "./IframePlayer";
 
-export default function VideoPlayer() {
+type Props = {
+  onVideoEnd?: () => void;
+};
+
+export default function VideoPlayer({ onVideoEnd }: Props) {
   const { state } = useRoom();
   const { theme } = useTheme();
 
@@ -28,11 +32,11 @@ export default function VideoPlayer() {
   }
 
   if (isYouTubeUrl(state.videoUrl)) {
-    return <YouTubePlayer url={state.videoUrl} />;
+    return <YouTubePlayer url={state.videoUrl} onVideoEnd={onVideoEnd} />;
   }
 
   if (isDirectVideoUrl(state.videoUrl)) {
-    return <DirectVideoPlayer url={state.videoUrl} />;
+    return <DirectVideoPlayer url={state.videoUrl} onVideoEnd={onVideoEnd} />;
   }
 
   return <IframePlayer url={state.videoUrl} />;
