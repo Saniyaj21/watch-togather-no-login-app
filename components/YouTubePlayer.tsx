@@ -12,8 +12,8 @@ type Props = {
 export default function YouTubePlayer({ url, onVideoEnd }: Props) {
   const videoId = extractYouTubeId(url);
   const { state, playVideo, pauseVideo } = useRoom();
-  const player = useYouTubePlayer(videoId ?? null, { controls: true, playsinline: true });
-  const syncLockRef = useRef(false);
+  const player = useYouTubePlayer(videoId ?? null, { controls: true, playsinline: true, autoplay: true });
+  const syncLockRef = useRef(true); // Start locked so initial autoplay event doesn't broadcast to others
 
   // Push play/pause + seek from socket events directly into the player
   useEffect(() => {
