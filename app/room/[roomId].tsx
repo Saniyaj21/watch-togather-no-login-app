@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Keyboard,
   Platform,
@@ -16,6 +15,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Toast } from "../../components/Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 import { RoomProvider, useRoom } from "../../contexts/RoomContext";
@@ -104,11 +104,12 @@ function RoomContent() {
   // ── Kick ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (state.kicked) {
-      Alert.alert(
-        "Removed from Room",
-        "You were removed by the host.",
-        [{ text: "OK", onPress: () => router.replace("/") }]
-      );
+      Toast.show({
+        type: "error",
+        text1: "Removed from Room",
+        text2: "You were removed by the host.",
+        onHide: () => router.replace("/"),
+      });
     }
   }, [state.kicked]);
 

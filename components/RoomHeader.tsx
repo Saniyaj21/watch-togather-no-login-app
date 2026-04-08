@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Toast } from "./Toast";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../contexts/ThemeContext";
@@ -19,7 +20,7 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
 
   const copyRoomId = async () => {
     await Clipboard.setStringAsync(roomId);
-    Alert.alert("Copied", "Room ID copied to clipboard!");
+    Toast.show({ type: "success", text1: "Copied", text2: "Room ID copied to clipboard!" });
   };
 
   return (

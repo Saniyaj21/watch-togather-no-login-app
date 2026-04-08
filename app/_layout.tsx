@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Toast } from "../components/Toast";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 
 function RootNav() {
@@ -27,6 +28,7 @@ function RootNav() {
           options={{ headerShown: false }}
         />
       </Stack>
+      <Toast.Component />
     </>
   );
 }

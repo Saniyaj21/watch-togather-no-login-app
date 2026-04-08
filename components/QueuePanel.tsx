@@ -4,8 +4,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from "react-native";
+import { Toast } from "./Toast";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
@@ -24,14 +24,8 @@ export default function QueuePanel({ myName }: Props) {
   const isHost = state.hostName === myName;
 
   const handleRemove = (index: number) => {
-    Alert.alert("Remove from Queue", "Remove this video from the queue?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => removeFromQueue(index),
-      },
-    ]);
+    removeFromQueue(index);
+    Toast.show({ type: "info", text1: "Removed from queue" });
   };
 
   if (state.queue.length === 0) {
