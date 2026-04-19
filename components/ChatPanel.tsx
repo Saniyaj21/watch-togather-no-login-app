@@ -351,7 +351,7 @@ export default function ChatPanel({ myName }: Props) {
             paddingBottom:
               Platform.OS === "android"
                 ? keyboardHeight > 0
-                  ? keyboardHeight + 17
+                  ? keyboardHeight + 20
                   : insets.bottom
                 : keyboardHeight > 0
                 ? 0
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   sendBtn: {
-    width: 36,
+    width: 48,
     height: 36,
     borderRadius: 18,
     alignItems: "center",
