@@ -20,28 +20,65 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
 
   const copyRoomId = async () => {
     await Clipboard.setStringAsync(roomId);
-    Toast.show({ type: "success", text1: "Copied", text2: "Room ID copied to clipboard!" });
+    Toast.show({
+      type: "success",
+      text1: "Copied",
+      text2: "Room code copied to clipboard!",
+    });
   };
 
   return (
     <>
-      <View style={[styles.container, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.background,
+            borderBottomColor: theme.border,
+          },
+        ]}
+      >
+        {/* Left: logo mark */}
         <View style={styles.left}>
-          <TouchableOpacity onPress={copyRoomId} activeOpacity={0.7} style={[styles.roomBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.roomIdText, { color: theme.textSecondary }]}>
-               {roomId}
-            </Text>
-            <Ionicons name="copy-outline" size={12} color={theme.textSecondary} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
+          <View
+            style={[styles.logoMark, { backgroundColor: theme.primaryMuted, borderColor: theme.primary + "30" }]}
+          >
+            <Ionicons name="film-outline" size={15} color={theme.primary} />
+          </View>
         </View>
 
+        {/* Center: room code */}
+        <TouchableOpacity
+          onPress={copyRoomId}
+          activeOpacity={0.7}
+          style={[
+            styles.roomBadge,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.roomIdText, { color: theme.textSecondary }]}>
+            {roomId}
+          </Text>
+          <Ionicons
+            name="copy-outline"
+            size={11}
+            color={theme.textSecondary}
+            style={{ marginLeft: 5 }}
+          />
+        </TouchableOpacity>
+
+        {/* Right: icon-only leave button */}
         <View style={styles.right}>
-          <TouchableOpacity 
-            onPress={onLeave} 
+          <TouchableOpacity
+            onPress={onLeave}
             activeOpacity={0.7}
-            style={[styles.leaveBtn, { backgroundColor: theme.danger + "10", borderColor: theme.danger + "20" }]}
+            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            style={[
+              styles.leaveBtn,
+              { backgroundColor: theme.danger + "15", borderColor: theme.danger + "30" },
+            ]}
           >
-            <Text style={[styles.leaveText, { color: theme.danger }]}>Leave</Text>
+            <Ionicons name="exit-outline" size={17} color={theme.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -57,29 +94,43 @@ export default function RoomHeader({ roomId, myName, onLeave }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 50,
+    height: 46,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderBottomWidth: 1,
   },
-  left: { flexDirection: "row", alignItems: "center" },
-  right: { flexDirection: "row", alignItems: "center" },
+  left: { flex: 1, flexDirection: "row", alignItems: "center" },
+  right: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end" },
+  logoMark: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   roomBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  roomIdText: { fontWeight: "800", fontSize: 13, letterSpacing: 1 },
-  leaveBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
   },
-  leaveText: { fontWeight: "700", fontSize: 13 },
+  roomIdText: {
+    fontWeight: "800",
+    fontSize: 13,
+    letterSpacing: 1.5,
+  },
+  leaveBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  leaveText: { fontWeight: "700", fontSize: 12 },
 });

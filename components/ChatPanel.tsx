@@ -223,7 +223,7 @@ export default function ChatPanel({ myName }: Props) {
                 <View
                   style={[
                     styles.systemChip,
-                    { backgroundColor: theme.border + "33" },
+                    { backgroundColor: theme.surface, borderColor: theme.border },
                   ]}
                 >
                   <Text
@@ -310,7 +310,7 @@ export default function ChatPanel({ myName }: Props) {
             onPress={() => setReplyingTo(null)}
             hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
           >
-            <Ionicons name="close" size={18} color={theme.textSecondary} />
+            <Ionicons name="close" size={17} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
@@ -339,7 +339,7 @@ export default function ChatPanel({ myName }: Props) {
             }}
             hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
           >
-            <Ionicons name="close" size={18} color={theme.textSecondary} />
+            <Ionicons name="close" size={17} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
@@ -362,27 +362,37 @@ export default function ChatPanel({ myName }: Props) {
         <View
           style={[
             styles.inputInner,
-            { borderColor: theme.border, backgroundColor: theme.surface },
+            {
+              borderColor: text.length > 0 ? theme.primary + "60" : theme.border,
+              backgroundColor: theme.surface,
+            },
           ]}
         >
           <TextInput
             style={[styles.input, { color: theme.text }]}
             value={text}
             onChangeText={handleTextChange}
-            placeholder={editingMessage ? "Edit message..." : "Type a message..."}
-            placeholderTextColor={theme.textSecondary + "80"}
+            placeholder={editingMessage ? "Edit message..." : "Message..."}
+            placeholderTextColor={theme.textSecondary + "70"}
             onSubmitEditing={handleSend}
             blurOnSubmit={false}
+            multiline={false}
           />
           <TouchableOpacity
-            style={[styles.sendBtn, { backgroundColor: theme.primary }]}
+            style={[
+              styles.sendBtn,
+              {
+                backgroundColor: text.trim() ? theme.primary : theme.surface2,
+                borderColor: text.trim() ? "transparent" : theme.border,
+              },
+            ]}
             onPress={handleSend}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
             <Ionicons
-              name={editingMessage ? "checkmark" : "send"}
-              size={18}
-              color={theme.background}
+              name={editingMessage ? "checkmark" : "arrow-up"}
+              size={17}
+              color={text.trim() ? theme.chatBubbleSelfText : theme.textSecondary}
             />
           </TouchableOpacity>
         </View>
@@ -394,7 +404,7 @@ export default function ChatPanel({ myName }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { flex: 1 },
-  listContent: { paddingVertical: 12, paddingHorizontal: 14 },
+  listContent: { paddingVertical: 14, paddingHorizontal: 14 },
   loadMoreHeader: {
     alignItems: "center",
     paddingVertical: 12,
@@ -407,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderTopWidth: 1,
     borderLeftWidth: 3,
     gap: 8,
@@ -424,9 +434,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   inputRow: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingBottom: 0,
-    paddingTop: 0,
+    paddingTop: 6,
   },
   inputInner: {
     flexDirection: "row",
@@ -434,30 +444,32 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 4,
     paddingVertical: 4,
-    borderRadius: 24,
+    borderRadius: 26,
     borderWidth: 1.5,
-    gap: 8,
+    gap: 6,
   },
   input: {
     flex: 1,
     fontSize: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
   },
   sendBtn: {
-    width: 48,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1.5,
   },
   systemChipRow: {
     alignItems: "center",
     marginVertical: 6,
   },
   systemChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 20,
+    borderWidth: 1,
   },
   systemChipText: {
     fontSize: 11,

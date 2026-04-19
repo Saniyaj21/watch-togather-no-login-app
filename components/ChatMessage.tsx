@@ -57,7 +57,6 @@ export default function ChatMessage({
   const canDelete = (isSelf || isHost) && !isDeleted;
   const canReply = !isDeleted;
 
-  // Bubble corner radii — "tail" on the side closest to name, only on first message of group
   const R = 18;
   const TAIL = 4;
   const borderRadius = {
@@ -69,7 +68,19 @@ export default function ChatMessage({
 
   if (isDeleted) {
     return (
-      <View style={[styles.row, isSelf ? styles.rowEnd : styles.rowStart, styles.deletedRow]}>
+      <View
+        style={[
+          styles.row,
+          isSelf ? styles.rowEnd : styles.rowStart,
+          styles.deletedRow,
+        ]}
+      >
+        <Ionicons
+          name="ban-outline"
+          size={12}
+          color={theme.textSecondary}
+          style={{ marginRight: 5 }}
+        />
         <Text style={[styles.deletedText, { color: theme.textSecondary }]}>
           This message was deleted
         </Text>
@@ -77,24 +88,17 @@ export default function ChatMessage({
     );
   }
 
-  const bubbleBg = isSelected
-    ? isSelf
-      ? theme.chatBubbleSelf + "cc"
-      : theme.chatBubbleOther
-    : isSelf
-    ? theme.chatBubbleSelf
-    : theme.chatBubbleOther;
-
+  const bubbleBg = isSelf ? theme.chatBubbleSelf : theme.chatBubbleOther;
   const textColor = isSelf ? theme.chatBubbleSelfText : theme.chatBubbleOtherText;
-  const replyBg = isSelf ? "rgba(255,255,255,0.15)" : theme.primary + "14";
-  const replyBorder = isSelf ? "rgba(255,255,255,0.5)" : theme.primary;
-  const replyNameColor = isSelf ? "rgba(255,255,255,0.85)" : theme.primary;
-  const replyTextColor = isSelf ? "rgba(255,255,255,0.65)" : theme.textSecondary;
+  const replyBg = isSelf ? "rgba(0,0,0,0.12)" : theme.primary + "14";
+  const replyBorder = isSelf ? "rgba(0,0,0,0.3)" : theme.primary;
+  const replyNameColor = isSelf ? "rgba(0,0,0,0.65)" : theme.primary;
+  const replyTextColor = isSelf ? "rgba(0,0,0,0.5)" : theme.textSecondary;
 
   return (
     <View style={[styles.wrapper, isSelf ? styles.wrapperEnd : styles.wrapperStart]}>
 
-      {/* Sender name — only first in group */}
+      {/* Sender name */}
       {showName && !isSelf && (
         <Text style={[styles.name, { color: theme.primary }]}>
           {senderName}
@@ -103,45 +107,75 @@ export default function ChatMessage({
 
       {/* Action toolbar — above bubble when selected */}
       {isSelected && (canReply || canEdit || canDelete) && (
-        <View style={[
-          styles.toolbar,
-          isSelf ? styles.toolbarEnd : styles.toolbarStart,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-        ]}>
+        <View
+          style={[
+            styles.toolbar,
+            isSelf ? styles.toolbarEnd : styles.toolbarStart,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+            },
+          ]}
+        >
           {canReply && (
             <TouchableOpacity
               style={styles.toolbarBtn}
-              onPress={() => { onSelect?.(null); onReply?.(messageId); }}
+              onPress={() => {
+                onSelect?.(null);
+                onReply?.(messageId);
+              }}
               hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             >
-              <Ionicons name="arrow-undo-outline" size={16} color={theme.textSecondary} />
-              <Text style={[styles.toolbarLabel, { color: theme.textSecondary }]}>Reply</Text>
+              <Ionicons
+                name="arrow-undo-outline"
+                size={15}
+                color={theme.textSecondary}
+              />
+              <Text
+                style={[styles.toolbarLabel, { color: theme.textSecondary }]}
+              >
+                Reply
+              </Text>
             </TouchableOpacity>
           )}
           {canReply && (canEdit || canDelete) && (
-            <View style={[styles.toolbarDivider, { backgroundColor: theme.border }]} />
+            <View
+              style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
+            />
           )}
           {canEdit && (
             <TouchableOpacity
               style={styles.toolbarBtn}
-              onPress={() => { onSelect?.(null); onEdit?.(messageId, text); }}
+              onPress={() => {
+                onSelect?.(null);
+                onEdit?.(messageId, text);
+              }}
               hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             >
-              <Ionicons name="pencil-outline" size={16} color={theme.primary} />
-              <Text style={[styles.toolbarLabel, { color: theme.primary }]}>Edit</Text>
+              <Ionicons name="pencil-outline" size={15} color={theme.primary} />
+              <Text style={[styles.toolbarLabel, { color: theme.primary }]}>
+                Edit
+              </Text>
             </TouchableOpacity>
           )}
           {canEdit && canDelete && (
-            <View style={[styles.toolbarDivider, { backgroundColor: theme.border }]} />
+            <View
+              style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
+            />
           )}
           {canDelete && (
             <TouchableOpacity
               style={styles.toolbarBtn}
-              onPress={() => { onSelect?.(null); onDelete?.(messageId); }}
+              onPress={() => {
+                onSelect?.(null);
+                onDelete?.(messageId);
+              }}
               hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             >
-              <Ionicons name="trash-outline" size={16} color={theme.danger} />
-              <Text style={[styles.toolbarLabel, { color: theme.danger }]}>Delete</Text>
+              <Ionicons name="trash-outline" size={15} color={theme.danger} />
+              <Text style={[styles.toolbarLabel, { color: theme.danger }]}>
+                Delete
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -160,11 +194,22 @@ export default function ChatMessage({
       >
         {/* Reply quote */}
         {replyTo && (
-          <View style={[styles.replyBlock, { backgroundColor: replyBg, borderLeftColor: replyBorder }]}>
-            <Text style={[styles.replyName, { color: replyNameColor }]} numberOfLines={1}>
+          <View
+            style={[
+              styles.replyBlock,
+              { backgroundColor: replyBg, borderLeftColor: replyBorder },
+            ]}
+          >
+            <Text
+              style={[styles.replyName, { color: replyNameColor }]}
+              numberOfLines={1}
+            >
               {replyTo.senderName}
             </Text>
-            <Text style={[styles.replySnippet, { color: replyTextColor }]} numberOfLines={2}>
+            <Text
+              style={[styles.replySnippet, { color: replyTextColor }]}
+              numberOfLines={2}
+            >
               {replyTo.textSnippet}
             </Text>
           </View>
@@ -173,14 +218,23 @@ export default function ChatMessage({
         <Text style={[styles.text, { color: textColor }]}>
           {text}
           {editedAt ? (
-            <Text style={[styles.editedTag, { color: isSelf ? "rgba(255,255,255,0.5)" : theme.textSecondary }]}>
+            <Text
+              style={[
+                styles.editedTag,
+                {
+                  color: isSelf
+                    ? "rgba(0,0,0,0.4)"
+                    : theme.textSecondary,
+                },
+              ]}
+            >
               {" "}· edited
             </Text>
           ) : null}
         </Text>
       </TouchableOpacity>
 
-      {/* Seen receipt — only last self message with seen */}
+      {/* Seen receipt */}
       {isSelf && seenCount > 0 && (
         <View style={styles.seenRow}>
           <Ionicons name="checkmark-done" size={12} color={theme.primary} />
@@ -208,7 +262,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingRight: 2,
   },
-  // Sender name
   name: {
     fontSize: 11,
     fontWeight: "700",
@@ -216,20 +269,19 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     letterSpacing: 0.1,
   },
-  // Toolbar
   toolbar: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 22,
+    borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 4,
     paddingVertical: 3,
     marginBottom: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   toolbarStart: { alignSelf: "flex-start" },
   toolbarEnd: { alignSelf: "flex-end" },
@@ -239,7 +291,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 18,
+    borderRadius: 16,
   },
   toolbarLabel: {
     fontSize: 12,
@@ -247,24 +299,22 @@ const styles = StyleSheet.create({
   },
   toolbarDivider: {
     width: 1,
-    height: 18,
+    height: 16,
     borderRadius: 1,
   },
-  // Bubble
   bubble: {
     paddingHorizontal: 13,
     paddingVertical: 9,
   },
   bubbleSelected: {
-    opacity: 0.82,
+    opacity: 0.78,
   },
-  // Reply block inside bubble
   replyBlock: {
-    borderLeftWidth: 2,
-    paddingLeft: 6,
-    paddingVertical: 2,
+    borderLeftWidth: 2.5,
+    paddingLeft: 7,
+    paddingVertical: 3,
     paddingRight: 4,
-    marginBottom: 5,
+    marginBottom: 6,
     borderRadius: 4,
   },
   replyName: {
@@ -276,7 +326,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 15,
   },
-  // Message text
   text: {
     fontSize: 14,
     lineHeight: 20,
@@ -284,20 +333,21 @@ const styles = StyleSheet.create({
   editedTag: {
     fontSize: 11,
   },
-  // Deleted
   row: {
     marginBottom: 2,
+    flexDirection: "row",
+    alignItems: "center",
   },
   rowStart: { alignSelf: "flex-start" },
   rowEnd: { alignSelf: "flex-end" },
   deletedRow: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   deletedText: {
-    fontSize: 13,
+    fontSize: 12,
     fontStyle: "italic",
   },
-  // Seen
   seenRow: {
     flexDirection: "row",
     alignItems: "center",

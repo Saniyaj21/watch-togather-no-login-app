@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,156 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Dimensions,
+  Pressable,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../contexts/ThemeContext";
 import { joinRoom } from "../lib/api";
 
-const { width: W } = Dimensions.get("window");
-const CODE_LENGTH = 6; // used for auto-join trigger and counter
-
-// ─── Illustration ────────────────────────────────────────────────────────────
-
-function JoinIllustration() {
-  const { theme, isDark } = useTheme();
-
-  return (
-    <View style={illus.root}>
-      {/* Glow */}
-      <View style={[illus.glow, { backgroundColor: theme.primary + "18" }]} />
-
-      {/* Door / Portal shape */}
-      <LinearGradient
-        colors={isDark ? ["#1E293B", "#0F172A"] : ["#EEF2FF", "#E0E7FF"]}
-        style={[illus.portal, { borderColor: theme.border }]}
-      >
-        {/* Key icon */}
-        <View style={[illus.keyRing, { borderColor: theme.primary + "40" }]}>
-          <View style={[illus.keyCircle, { backgroundColor: theme.primary }]}>
-            <Ionicons name="key" size={24} color="#fff" />
-          </View>
-        </View>
-
-        {/* Fake code preview */}
-        <View style={illus.codeRow}>
-          {["A", "1", "B", "·", "·", "·"].map((ch, i) => (
-            <View
-              key={i}
-              style={[
-                illus.codeCell,
-                {
-                  backgroundColor: i < 3 ? theme.primary + "20" : theme.border + "40",
-                  borderColor: i < 3 ? theme.primary + "50" : theme.border,
-                },
-              ]}
-            >
-              <Text style={[illus.codeCellText, { color: i < 3 ? theme.primary : theme.textSecondary + "60" }]}>
-                {ch}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </LinearGradient>
-
-      {/* Floating "invited" badge */}
-      <View style={[illus.badge, { backgroundColor: theme.success + "22", borderColor: theme.success + "44", left: -12, top: 20 }]}>
-        <Ionicons name="checkmark-circle" size={12} color={theme.success} style={{ marginRight: 4 }} />
-        <Text style={[illus.badgeText, { color: theme.success }]}>Invited</Text>
-      </View>
-
-      {/* Floating people badge */}
-      <View style={[illus.badge, { backgroundColor: theme.primary + "18", borderColor: theme.primary + "33", right: -8, bottom: 28 }]}>
-        <Ionicons name="people" size={12} color={theme.primary} style={{ marginRight: 4 }} />
-        <Text style={[illus.badgeText, { color: theme.primary }]}>3 watching</Text>
-      </View>
-    </View>
-  );
-}
-
-const illus = StyleSheet.create({
-  root: {
-    alignItems: "center",
-    marginBottom: 36,
-    height: 190,
-    justifyContent: "center",
-  },
-  glow: {
-    position: "absolute",
-    width: 180,
-    height: 100,
-    borderRadius: 999,
-    alignSelf: "center",
-    top: "30%",
-  },
-  portal: {
-    width: W - 80,
-    height: 160,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-    shadowColor: "#6366F1",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  keyRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  keyCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#6366F1",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  codeRow: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  codeCell: {
-    width: 28,
-    height: 32,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  codeCellText: {
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  badge: {
-    position: "absolute",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-});
+const CODE_LENGTH = 6;
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
@@ -169,10 +28,11 @@ export default function JoinRoomScreen() {
   const [roomId, setRoomId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
   const handleJoin = async (overrideCode?: string) => {
     const code = (overrideCode ?? roomId).trim().toUpperCase();
-    if (!code) return;
+    if (!code || code.length < CODE_LENGTH) return;
     setLoading(true);
     setError(null);
     try {
@@ -187,66 +47,144 @@ export default function JoinRoomScreen() {
     }
   };
 
+  const focusInput = () => inputRef.current?.focus();
+
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.background }]}>
       {/* Back */}
       <TouchableOpacity
         onPress={() => router.back()}
-        style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        style={[
+          styles.backBtn,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
         activeOpacity={0.7}
       >
         <Ionicons name="arrow-back" size={18} color={theme.textSecondary} />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.body}>
-            <JoinIllustration />
+            {/* Icon */}
+            <View
+              style={[
+                styles.iconWrap,
+                {
+                  backgroundColor: theme.primaryMuted,
+                  borderColor: theme.primary + "30",
+                },
+              ]}
+            >
+              <Ionicons name="key" size={28} color={theme.primary} />
+            </View>
 
             {/* Headline */}
-            <Text style={[styles.headline, { color: theme.text }]}>Enter Room Code</Text>
+            <Text style={[styles.headline, { color: theme.text }]}>
+              Enter Room Code
+            </Text>
             <Text style={[styles.tagline, { color: theme.textSecondary }]}>
-              Got a 6-character code? Paste it below to jump in.
+              Type the 6-character code to join
             </Text>
 
-            {/* Code input */}
-            <View style={[
-              styles.inputWrap,
-              { borderColor: error ? theme.danger : theme.border, backgroundColor: theme.surface },
-            ]}>
-              <Ionicons name="key-outline" size={16} color={theme.textSecondary} style={styles.inputIcon} />
+            {/* Code slot display + hidden input */}
+            <Pressable onPress={focusInput} style={styles.codeContainer}>
+              {Array.from({ length: CODE_LENGTH }).map((_, i) => {
+                const char = roomId[i] ?? "";
+                const isFilled = i < roomId.length;
+                const isCursor = i === roomId.length && roomId.length < CODE_LENGTH;
+
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.codeCell,
+                      {
+                        backgroundColor: isFilled
+                          ? theme.primaryMuted
+                          : theme.surface,
+                        borderColor: isCursor
+                          ? theme.primary
+                          : isFilled
+                          ? theme.primary + "55"
+                          : theme.border,
+                        borderWidth: isCursor ? 2 : 1.5,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.codeCellText,
+                        { color: isFilled ? theme.primary : "transparent" },
+                      ]}
+                    >
+                      {char || " "}
+                    </Text>
+                    {isCursor && (
+                      <View
+                        style={[
+                          styles.cursor,
+                          { backgroundColor: theme.primary },
+                        ]}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+
+              {/* Visually hidden input */}
               <TextInput
-                style={[styles.input, { color: theme.text }]}
+                ref={inputRef}
                 value={roomId}
                 onChangeText={(val) => {
-                  const upper = val.toUpperCase();
+                  const upper = val.toUpperCase().replace(/[^A-Z0-9]/g, "");
                   setRoomId(upper);
                   setError(null);
                   if (upper.length === CODE_LENGTH) {
-                    setTimeout(() => handleJoin(upper), 0);
+                    setTimeout(() => handleJoin(upper), 50);
                   }
                 }}
-                placeholder="A1B2C3"
-                placeholderTextColor={theme.textSecondary + "60"}
                 autoCapitalize="characters"
                 maxLength={CODE_LENGTH}
                 returnKeyType="go"
                 onSubmitEditing={() => handleJoin()}
                 autoFocus
+                style={styles.hiddenInput}
+                caretHidden
               />
-              {roomId.length > 0 && (
-                <Text style={[styles.counter, { color: theme.textSecondary }]}>{roomId.length}/{CODE_LENGTH}</Text>
-              )}
-            </View>
+            </Pressable>
+
+            {/* Counter */}
+            <Text style={[styles.counter, { color: theme.textSecondary }]}>
+              {roomId.length} / {CODE_LENGTH}
+            </Text>
 
             {error && (
-              <View style={[styles.errorRow, { backgroundColor: theme.danger + "12", borderColor: theme.danger + "30" }]}>
-                <Ionicons name="alert-circle-outline" size={14} color={theme.danger} style={{ marginRight: 6 }} />
-                <Text style={[styles.errorText, { color: theme.danger }]}>{error}</Text>
+              <View
+                style={[
+                  styles.errorRow,
+                  {
+                    backgroundColor: theme.danger + "12",
+                    borderColor: theme.danger + "30",
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={14}
+                  color={theme.danger}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={[styles.errorText, { color: theme.danger }]}>
+                  {error}
+                </Text>
               </View>
             )}
 
@@ -262,11 +200,26 @@ export default function JoinRoomScreen() {
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color={theme.background} size="small" />
+                <ActivityIndicator
+                  color={theme.chatBubbleSelfText}
+                  size="small"
+                />
               ) : (
                 <>
-                  <Ionicons name="enter-outline" size={18} color={theme.background} style={{ marginRight: 8 }} />
-                  <Text style={[styles.joinBtnText, { color: theme.background }]}>Join Room</Text>
+                  <Ionicons
+                    name="enter-outline"
+                    size={19}
+                    color={theme.chatBubbleSelfText}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[
+                      styles.joinBtnText,
+                      { color: theme.chatBubbleSelfText },
+                    ]}
+                  >
+                    Join Room
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -282,10 +235,10 @@ const styles = StyleSheet.create({
   backBtn: {
     position: "absolute",
     top: 56,
-    left: 24,
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    left: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -298,39 +251,71 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 28,
     paddingVertical: 24,
-    paddingTop: 72,
+    paddingTop: 80,
+    alignItems: "center",
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
   headline: {
     fontSize: 28,
     fontWeight: "900",
-    letterSpacing: -0.8,
-    marginBottom: 6,
+    letterSpacing: -0.6,
+    marginBottom: 8,
+    textAlign: "center",
   },
   tagline: {
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
-    marginBottom: 32,
+    marginBottom: 36,
+    textAlign: "center",
   },
-  inputWrap: {
+  codeContainer: {
     flexDirection: "row",
+    gap: 8,
     alignItems: "center",
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 52,
-    marginBottom: 12,
+    justifyContent: "center",
+    position: "relative",
   },
-  inputIcon: { marginRight: 10 },
-  input: {
-    flex: 1,
-    fontSize: 18,
+  codeCell: {
+    width: 44,
+    height: 56,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  codeCellText: {
+    fontSize: 22,
     fontWeight: "800",
-    letterSpacing: 4,
+    letterSpacing: 0.5,
+  },
+  cursor: {
+    position: "absolute",
+    bottom: 10,
+    width: 2,
+    height: 22,
+    borderRadius: 1,
+  },
+  hiddenInput: {
+    position: "absolute",
+    opacity: 0,
+    width: 1,
+    height: 1,
   },
   counter: {
     fontSize: 12,
     fontWeight: "600",
+    marginTop: 12,
+    marginBottom: 4,
+    letterSpacing: 0.3,
   },
   errorRow: {
     flexDirection: "row",
@@ -339,7 +324,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: 16,
+    marginTop: 12,
+    alignSelf: "stretch",
   },
   errorText: {
     fontSize: 13,
@@ -348,16 +334,22 @@ const styles = StyleSheet.create({
   },
   joinBtn: {
     height: 54,
-    borderRadius: 14,
+    borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: 20,
+    alignSelf: "stretch",
+    shadowColor: "#F5A524",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
   },
   joinBtnText: {
     fontSize: 16,
     fontWeight: "800",
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
-  disabled: { opacity: 0.5 },
+  disabled: { opacity: 0.45 },
 });

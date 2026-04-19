@@ -19,7 +19,7 @@ import { Toast } from "../../components/Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 import { RoomProvider, useRoom } from "../../contexts/RoomContext";
-import RoomHeader from "../../components/RoomHeader";
+import * as Clipboard from "expo-clipboard";
 import VideoPlayer from "../../components/VideoPlayer";
 import UrlInput from "../../components/UrlInput";
 import ChatPanel from "../../components/ChatPanel";
@@ -144,16 +144,19 @@ function RoomContent() {
       <TouchableOpacity
         key={index}
         onPress={() => handleTabPress(index)}
-        style={styles.tab}
+        style={[
+          styles.tab,
+          isActive && { backgroundColor: theme.primaryMuted },
+        ]}
         activeOpacity={0.7}
       >
         <View style={styles.tabContent}>
           <View>
             <Ionicons
               name={icon}
-              size={15}
+              size={14}
               color={isActive ? theme.primary : theme.textSecondary}
-              style={{ marginRight: showBadge ? 2 : 5 }}
+              style={{ marginRight: showBadge ? 2 : 4 }}
             />
             {showBadge && (
               <View style={[styles.badge, { backgroundColor: theme.danger }]}>
@@ -163,11 +166,15 @@ function RoomContent() {
               </View>
             )}
           </View>
-          <Text style={[styles.tabLabel, { color: isActive ? theme.primary : theme.textSecondary }]}>
+          <Text
+            style={[
+              styles.tabLabel,
+              { color: isActive ? theme.primary : theme.textSecondary },
+            ]}
+          >
             {label}
           </Text>
         </View>
-        <View style={[styles.tabUnderline, isActive && { backgroundColor: theme.primary }]} />
       </TouchableOpacity>
     );
   };
@@ -177,8 +184,6 @@ function RoomContent() {
       style={[styles.container, { backgroundColor: theme.background }]}
       edges={["top"]}
     >
-      <RoomHeader roomId={roomId || ""} myName={name || "Guest"} onLeave={handleLeave} />
-
       <View
         style={videoCollapsed ? styles.videoHidden : undefined}
         onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}
@@ -192,10 +197,11 @@ function RoomContent() {
         style={[styles.collapseStrip, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
         activeOpacity={0.7}
       >
+        <View style={[styles.collapseHandle, { backgroundColor: theme.border }]} />
         <Ionicons
           name={videoCollapsed ? "chevron-down" : "chevron-up"}
-          size={14}
-          color={theme.textSecondary}
+          size={12}
+          color={theme.textSecondary + "80"}
         />
       </TouchableOpacity>
 
@@ -205,13 +211,37 @@ function RoomContent() {
         enabled={Platform.OS === "ios"}
         keyboardVerticalOffset={0}
       >
-        {/* Tab Navigation */}
-        <View style={[styles.tabBarContainer, { borderBottomColor: theme.border }]}>
-          <View style={styles.tabTrack}>
-            {renderTab(0, "play", "Video")}
-            {renderTab(1, "chatbubble", "Chat")}
-            {renderTab(2, "people", state.participants?.length || 0)}
+        {/* Combined bar: code | tabs | exit */}
+        <View style={[styles.tabBarContainer, { borderBottomColor: theme.border, backgroundColor: theme.background }]}>
+          {/* Left: room code */}
+          <TouchableOpacity
+            onPress={async () => {
+              await Clipboard.setStringAsync(roomId || "");
+              Toast.show({ type: "success", text1: "Copied", text2: "Room code copied!" });
+            }}
+            activeOpacity={0.7}
+            style={[styles.roomCodeBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          >
+            <Text style={[styles.roomCodeText, { color: theme.textSecondary }]}>{roomId}</Text>
+            <Ionicons name="copy-outline" size={10} color={theme.textSecondary} style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+
+          {/* Center: tabs */}
+          <View style={[styles.tabTrack, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {renderTab(0, "play-outline", "Video")}
+            {renderTab(1, "chatbubble-outline", "Chat")}
+            {renderTab(2, "people-outline", state.participants?.length || 0)}
           </View>
+
+          {/* Right: leave */}
+          <TouchableOpacity
+            onPress={handleLeave}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            style={[styles.leaveBtn, { backgroundColor: theme.danger + "15", borderColor: theme.danger + "30" }]}
+          >
+            <Ionicons name="exit-outline" size={16} color={theme.danger} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.contentArea}>
@@ -319,36 +349,69 @@ const styles = StyleSheet.create({
   collapseStrip: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderBottomWidth: 1,
+    gap: 2,
+  },
+  collapseHandle: {
+    width: 32,
+    height: 3,
+    borderRadius: 1.5,
+    marginBottom: 1,
   },
   tabBarContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
     borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   tabTrack: {
+    flex: 1,
     flexDirection: "row",
+    borderRadius: 11,
+    borderWidth: 1,
+    padding: 3,
   },
   tab: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   tabContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  tabUnderline: {
-    position: "absolute",
-    bottom: 0,
-    left: "15%",
-    right: "15%",
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "transparent",
+  tabLabel: { fontSize: 12, fontWeight: "700" },
+  roomControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  tabLabel: { fontSize: 13, fontWeight: "700" },
+  roomCodeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 9,
+    borderWidth: 1,
+  },
+  roomCodeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  leaveBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   // Badge
   badge: {
     position: "absolute",
@@ -373,18 +436,18 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     zIndex: 999,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   toastInner: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 10,
   },
