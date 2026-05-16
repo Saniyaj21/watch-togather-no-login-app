@@ -5,13 +5,31 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
 import { getVideoType, toEmbedUrl } from "../lib/videoUtils";
 
+const EXAMPLE_URLS = [
+  {
+    label: "YouTube",
+    url: "https://youtu.be/_Sl8diqCAFw?si=aFL81herkXu5II9j",
+    icon: "logo-youtube",
+    hint: "Video Share URL",
+  },
+  {
+    label: "MP4",
+    url: "https://www.w3schools.com/html/mov_bbb.mp4",
+    icon: "film-outline",
+    hint: "Any direct video URL ending in .mp4",
+  },
+];
+
 export default function UrlInput() {
   const { theme } = useTheme();
-  const { changeVideo, addToQueue } = useRoom();
+  const { state, changeVideo, addToQueue } = useRoom();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loadSuccess, setLoadSuccess] = useState(false);
   const [queueSuccess, setQueueSuccess] = useState(false);
+
+  const hasVideo = !!state.videoUrl;
+  const [infoExpanded, setInfoExpanded] = useState(!hasVideo);
 
   const parseUrl = (raw: string) => {
     const trimmed = raw.trim();
@@ -55,8 +73,14 @@ export default function UrlInput() {
     if (error) setError(null);
   };
 
+  const handleExample = (exUrl: string) => {
+    setUrl(exUrl);
+    setError(null);
+  };
+
   return (
     <View style={styles.outer}>
+      {/* URL input pill */}
       <View style={[styles.pill, { backgroundColor: theme.surface, borderColor: error ? theme.danger : theme.border }]}>
         <TextInput
           style={[styles.input, { color: theme.text }]}
@@ -95,9 +119,51 @@ export default function UrlInput() {
           </TouchableOpacity>
         </View>
       </View>
+
       {error && (
         <Text style={[styles.errorText, { color: theme.danger }]}>{error}</Text>
       )}
+
+      {/* Supported formats — collapsible */}
+      <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <TouchableOpacity
+          onPress={() => setInfoExpanded((v) => !v)}
+          style={styles.infoHeader}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="information-circle-outline" size={14} color={theme.textSecondary} />
+          <Text style={[styles.infoTitle, { color: theme.textSecondary }]}>Supported formats</Text>
+          <Ionicons
+            name={infoExpanded ? "chevron-up" : "chevron-down"}
+            size={13}
+            color={theme.textSecondary}
+            style={{ marginLeft: "auto" }}
+          />
+        </TouchableOpacity>
+
+        {infoExpanded && (
+          <View style={styles.infoBody}>
+            {EXAMPLE_URLS.map((ex) => (
+              <View key={ex.label} style={styles.formatRow}>
+                <View style={styles.formatLeft}>
+                  <Ionicons name={ex.icon as any} size={13} color={theme.primary} />
+                  <View style={styles.formatText}>
+                    <Text style={[styles.formatLabel, { color: theme.text }]}>{ex.label}</Text>
+                    <Text style={[styles.formatHint, { color: theme.textSecondary }]}>{ex.hint}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleExample(ex.url)}
+                  style={[styles.tryBtn, { borderColor: theme.border }]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.tryBtnText, { color: theme.primary }]}>Try</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -149,5 +215,61 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 14,
     fontWeight: "500",
+  },
+  // Onboarding info card
+  infoCard: {
+    marginTop: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  infoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  infoBody: {
+    gap: 10,
+    marginTop: 10,
+  },
+  infoTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  formatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  formatLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  formatText: {
+    flex: 1,
+  },
+  formatLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  formatHint: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  tryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginLeft: 8,
+  },
+  tryBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
