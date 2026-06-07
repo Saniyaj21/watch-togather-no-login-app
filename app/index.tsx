@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,9 +16,9 @@ import { createRoom } from "../lib/api";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { useUser } from "../contexts/UserContext";
 
 const { width: W } = Dimensions.get("window");
-const NAME_STORAGE_KEY = "wt_user_name";
 
 const MEMBER_COLORS = ["#6366F1", "#EC4899", "#10B981"];
 
@@ -300,17 +299,9 @@ const hero = StyleSheet.create({
 export default function HomeScreen() {
   const router = useRouter();
   const { theme, isDark, toggleTheme } = useTheme();
-  const [name, setName] = useState("");
+  const { name, setName } = useUser();
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem(NAME_STORAGE_KEY).then((saved) => {
-      if (saved) setName(saved);
-    });
-  }, []);
-
-  const saveName = (n: string) => AsyncStorage.setItem(NAME_STORAGE_KEY, n);
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -320,7 +311,7 @@ export default function HomeScreen() {
     setError("");
     setCreating(true);
     try {
-      await saveName(name.trim());
+      setName(name.trim());
       const data = await createRoom(name.trim());
       router.replace({
         pathname: "/room/[roomId]",
@@ -339,7 +330,7 @@ export default function HomeScreen() {
       return;
     }
     setError("");
-    saveName(name.trim());
+    setName(name.trim());
     router.push({ pathname: "/join-room", params: { name: name.trim() } });
   };
 
@@ -440,10 +431,7 @@ export default function HomeScreen() {
               />
               {name.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => {
-                    setName("");
-                    AsyncStorage.removeItem(NAME_STORAGE_KEY);
-                  }}
+                  onPress={() => setName("")}
                   hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
                 >
                   <Ionicons

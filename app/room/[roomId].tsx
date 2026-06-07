@@ -17,6 +17,7 @@ import { Toast } from "../../components/Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 import { RoomProvider, useRoom } from "../../contexts/RoomContext";
+import { useUser } from "../../contexts/UserContext";
 import VideoPlayer from "../../components/VideoPlayer";
 import UrlInput from "../../components/UrlInput";
 import ChatPanel from "../../components/ChatPanel";
@@ -27,10 +28,8 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 function RoomContent() {
-  const { roomId, name } = useLocalSearchParams<{
-    roomId: string;
-    name: string;
-  }>();
+  const { roomId } = useLocalSearchParams<{ roomId: string; name: string }>();
+  const { name } = useUser();
   const router = useRouter();
   const { theme } = useTheme();
   const { state, advanceQueue } = useRoom();
@@ -324,10 +323,8 @@ function RoomContent() {
 }
 
 export default function RoomScreen() {
-  const { roomId, name } = useLocalSearchParams<{
-    roomId: string;
-    name: string;
-  }>();
+  const { roomId } = useLocalSearchParams<{ roomId: string }>();
+  const { name } = useUser();
 
   return (
     <RoomProvider roomId={roomId || ""} name={name || "Guest"}>

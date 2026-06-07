@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -10,6 +11,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { useUser } from "../contexts/UserContext";
 
 const ROWS = [
   { icon: "color-palette-outline", label: "Theme", route: "/theme-settings" },
@@ -20,13 +22,34 @@ const ROWS = [
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { name, setName } = useUser();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<TextInput>(null);
 
+  const startEditing = () => {
+    setDraft(name);
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const saveName = () => {
+    const trimmed = draft.trim();
+    if (trimmed) setName(trimmed);
+    setEditing(false);
+  };
+
+  const cancelEditing = () => {
+    setEditing(false);
+    setDraft(name);
+  };
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
@@ -45,6 +68,59 @@ export default function SettingsScreen() {
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Customize your experience
           </Text>
+        </View>
+
+        {/* Display Name Card */}
+        <View
+          style={[
+            styles.nameCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <View style={[styles.nameAvatarWrap, { backgroundColor: theme.primary + "22", borderColor: theme.primary + "44" }]}>
+            {name.trim() ? (
+              <Text style={[styles.nameAvatarText, { color: theme.primary }]}>
+                {name.trim().charAt(0).toUpperCase()}
+              </Text>
+            ) : (
+              <Ionicons name="person-outline" size={16} color={theme.primary} />
+            )}
+          </View>
+
+          <View style={styles.nameInfo}>
+            <Text style={[styles.nameLabel, { color: theme.textSecondary }]}>Display Name</Text>
+            {editing ? (
+              <TextInput
+                ref={inputRef}
+                style={[styles.nameInput, { color: theme.text, borderColor: theme.primary + "60" }]}
+                value={draft}
+                onChangeText={setDraft}
+                autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={saveName}
+                selectTextOnFocus
+              />
+            ) : (
+              <Text style={[styles.nameValue, { color: theme.text }]}>
+                {name.trim() || "Not set"}
+              </Text>
+            )}
+          </View>
+
+          {editing ? (
+            <View style={styles.editActions}>
+              <TouchableOpacity onPress={cancelEditing} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+                <Ionicons name="close-circle" size={22} color={theme.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={saveName} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+                <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={startEditing} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+              <Ionicons name="pencil-outline" size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.sections}>
@@ -101,6 +177,54 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
     fontWeight: "500",
+  },
+  nameCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  nameAvatarWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nameAvatarText: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  nameInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  nameLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
+  nameValue: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  nameInput: {
+    fontSize: 15,
+    fontWeight: "600",
+    borderBottomWidth: 1.5,
+    paddingBottom: 2,
+    paddingTop: 0,
+  },
+  editActions: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
   },
   sections: {
     gap: 10,
