@@ -1,9 +1,14 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform, UIManager } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toast } from "../components/Toast";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 import { UserProvider } from "../contexts/UserContext";
+
+if (Platform.OS === "android") {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 function RootNav() {
   const { theme, isDark } = useTheme();

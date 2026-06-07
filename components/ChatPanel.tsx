@@ -503,7 +503,7 @@ export default function ChatPanel({ myName }: Props) {
             paddingBottom:
               Platform.OS === "android"
                 ? keyboardHeight > 0
-                  ? keyboardHeight + 20
+                  ? keyboardHeight + insets.bottom
                   : insets.bottom
                 : keyboardHeight > 0
                 ? 0
