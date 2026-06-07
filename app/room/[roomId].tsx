@@ -9,8 +9,6 @@ import {
   Platform,
   ScrollView,
   Dimensions,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -120,13 +118,6 @@ function RoomContent() {
   const handleTabPress = (index: number) => {
     setActiveTab(index);
     scrollRef.current?.scrollTo({ x: index * SCREEN_WIDTH, animated: true });
-  };
-
-  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    if (activeTab !== index) {
-      setActiveTab(index);
-    }
   };
 
   // ── Queue advance when video ends ─────────────────────────────────────────
@@ -290,8 +281,8 @@ function RoomContent() {
             ref={scrollRef}
             horizontal
             pagingEnabled
+            scrollEnabled={false}
             showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleScrollEnd}
             contentOffset={{ x: SCREEN_WIDTH, y: 0 }}
             keyboardShouldPersistTaps="handled"
           >

@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef, useCallback } from "react";
 import { AppState, AppStateStatus } from "react-native";
 import { Socket } from "socket.io-client";
 import { createSocket } from "../lib/socket";
+import { deriveRoomKey, encryptText, decryptText, RoomKey } from "../lib/crypto";
 
 type Participant = { socketId: string; name: string };
 
@@ -23,6 +24,19 @@ type Message = {
 };
 
 type SeenEntry = { name: string; lastSeenAt: string };
+
+function decryptMsg(msg: Message, key: RoomKey): Message {
+  if (msg.isSystem || msg.isDeleted || !msg.text) return msg;
+  const text = decryptText(key, msg.text);
+  const replyTo = msg.replyTo
+    ? { ...msg.replyTo, textSnippet: decryptText(key, msg.replyTo.textSnippet) }
+    : msg.replyTo;
+  return { ...msg, text, replyTo };
+}
+
+function decryptMsgs(msgs: Message[], key: RoomKey): Message[] {
+  return msgs.map((m) => decryptMsg(m, key));
+}
 
 type QueueItem = {
   url: string;
@@ -199,11 +213,14 @@ export const useRoomSocket = (roomId: string, name: string) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const keyRef = useRef<RoomKey | null>(null);
   // Keep stable refs for loadMoreMessages to avoid stale closure issues
   const stateRef = useRef(state);
   stateRef.current = state;
 
   useEffect(() => {
+    keyRef.current = deriveRoomKey(roomId);
+
     console.log("[Socket] Connecting to room:", roomId, "as:", name);
     const socket = createSocket(roomId, name);
     socketRef.current = socket;
@@ -270,10 +287,12 @@ export const useRoomSocket = (roomId: string, name: string) => {
 
     // chat:history is now { messages, hasMore } shape
     socket.on("chat:history", ({ messages, hasMore }: { messages: Message[]; hasMore: boolean }) => {
-      dispatch({ type: "CHAT_HISTORY", messages, hasMore });
+      const decrypted = keyRef.current ? decryptMsgs(messages, keyRef.current) : messages;
+      dispatch({ type: "CHAT_HISTORY", messages: decrypted, hasMore });
     });
     socket.on("chat:received", (message: Message) => {
-      dispatch({ type: "CHAT_RECEIVED", message });
+      const decrypted = keyRef.current ? decryptMsg(message, keyRef.current) : message;
+      dispatch({ type: "CHAT_RECEIVED", message: decrypted });
     });
     socket.on("chat:user-typing", ({ name: userName, isTyping }) => {
       dispatch({ type: "USER_TYPING", name: userName, isTyping });
@@ -282,7 +301,8 @@ export const useRoomSocket = (roomId: string, name: string) => {
       dispatch({ type: "SEEN_UPDATE", seenData });
     });
     socket.on("chat:message-edited", ({ messageId, newText, editedAt }) => {
-      dispatch({ type: "MESSAGE_EDITED", messageId, newText, editedAt });
+      const decryptedText = keyRef.current ? decryptText(keyRef.current, newText) : newText;
+      dispatch({ type: "MESSAGE_EDITED", messageId, newText: decryptedText, editedAt });
     });
     socket.on("chat:message-deleted", ({ messageId }) => {
       dispatch({ type: "MESSAGE_DELETED", messageId });
@@ -335,8 +355,11 @@ export const useRoomSocket = (roomId: string, name: string) => {
     };
   }, [roomId, name]);
 
-  const sendChat = useCallback((text: string, replyToMessageId?: string) => {
-    socketRef.current?.emit("chat:send", { text, replyToMessageId });
+  const sendChat = useCallback((text: string, replyToMessageId?: string, replyToSnippet?: string) => {
+    const key = keyRef.current;
+    const encryptedText = key ? encryptText(key, text) : text;
+    const encryptedSnippet = key && replyToSnippet ? encryptText(key, replyToSnippet) : replyToSnippet;
+    socketRef.current?.emit("chat:send", { text: encryptedText, replyToMessageId, replyToSnippet: encryptedSnippet });
     socketRef.current?.emit("chat:typing", { isTyping: false });
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   }, []);
@@ -376,7 +399,9 @@ export const useRoomSocket = (roomId: string, name: string) => {
   }, []);
 
   const editMessage = useCallback((messageId: string, newText: string) => {
-    socketRef.current?.emit("chat:edit", { messageId, newText });
+    const key = keyRef.current;
+    const encrypted = key ? encryptText(key, newText) : newText;
+    socketRef.current?.emit("chat:edit", { messageId, newText: encrypted });
   }, []);
 
   const deleteMessage = useCallback((messageId: string) => {
@@ -397,9 +422,10 @@ export const useRoomSocket = (roomId: string, name: string) => {
       "chat:load-more",
       { beforeCreatedAt: oldest.createdAt },
       (response: { messages: Message[]; hasMore: boolean }) => {
+        const decrypted = keyRef.current ? decryptMsgs(response.messages, keyRef.current) : response.messages;
         dispatch({
           type: "CHAT_HISTORY_PREPEND",
-          messages: response.messages,
+          messages: decrypted,
           hasMore: response.hasMore,
         });
       }

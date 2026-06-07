@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  PanResponder,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
@@ -33,6 +35,9 @@ type Props = {
   isHost?: boolean;
 };
 
+const SWIPE_THRESHOLD = 60;
+const MAX_SWIPE = 80;
+
 export default function ChatMessage({
   messageId,
   senderName,
@@ -52,6 +57,58 @@ export default function ChatMessage({
   isHost = false,
 }: Props) {
   const { theme } = useTheme();
+
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  // Keep refs to latest props so panResponder closure stays fresh
+  const onReplyRef = useRef(onReply);
+  onReplyRef.current = onReply;
+  const isSelfRef = useRef(isSelf);
+  isSelfRef.current = isSelf;
+  const isDeletedRef = useRef(isDeleted);
+  isDeletedRef.current = isDeleted;
+
+  const springBack = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 8,
+    }).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, g) =>
+        !isDeletedRef.current &&
+        Math.abs(g.dx) > 8 &&
+        Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderMove: (_, g) => {
+        if (isDeletedRef.current) return;
+        const dx = isSelfRef.current
+          ? Math.max(-MAX_SWIPE, Math.min(0, g.dx))
+          : Math.min(MAX_SWIPE, Math.max(0, g.dx));
+        translateX.setValue(dx);
+      },
+      onPanResponderRelease: (_, g) => {
+        const triggered = isSelfRef.current
+          ? g.dx < -SWIPE_THRESHOLD
+          : g.dx > SWIPE_THRESHOLD;
+        if (triggered && !isDeletedRef.current) {
+          onReplyRef.current?.(messageId);
+        }
+        springBack();
+      },
+      onPanResponderTerminate: () => springBack(),
+    })
+  ).current;
+
+  const replyHintOpacity = translateX.interpolate({
+    inputRange: isSelf ? [-SWIPE_THRESHOLD, -8] : [8, SWIPE_THRESHOLD],
+    outputRange: isSelf ? [1, 0] : [0, 1],
+    extrapolate: "clamp",
+  });
 
   const canEdit = isSelf && !isDeleted;
   const canDelete = (isSelf || isHost) && !isDeleted;
@@ -96,161 +153,200 @@ export default function ChatMessage({
   const replyTextColor = isSelf ? "rgba(0,0,0,0.5)" : theme.textSecondary;
 
   return (
-    <View style={[styles.wrapper, isSelf ? styles.wrapperEnd : styles.wrapperStart]}>
-
-      {/* Sender name */}
-      {showName && !isSelf && (
-        <Text style={[styles.name, { color: theme.primary }]}>
-          {senderName}
-        </Text>
-      )}
-
-      {/* Action toolbar — above bubble when selected */}
-      {isSelected && (canReply || canEdit || canDelete) && (
-        <View
+    <View style={styles.swipeContainer}>
+      {/* Reply icon revealed as bubble slides away */}
+      {canReply && (
+        <Animated.View
+          pointerEvents="none"
           style={[
-            styles.toolbar,
-            isSelf ? styles.toolbarEnd : styles.toolbarStart,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-            },
+            styles.replyHint,
+            isSelf ? styles.replyHintRight : styles.replyHintLeft,
+            { opacity: replyHintOpacity },
           ]}
         >
-          {canReply && (
-            <TouchableOpacity
-              style={styles.toolbarBtn}
-              onPress={() => {
-                onSelect?.(null);
-                onReply?.(messageId);
-              }}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            >
-              <Ionicons
-                name="arrow-undo-outline"
-                size={15}
-                color={theme.textSecondary}
-              />
-              <Text
-                style={[styles.toolbarLabel, { color: theme.textSecondary }]}
-              >
-                Reply
-              </Text>
-            </TouchableOpacity>
-          )}
-          {canReply && (canEdit || canDelete) && (
-            <View
-              style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
-            />
-          )}
-          {canEdit && (
-            <TouchableOpacity
-              style={styles.toolbarBtn}
-              onPress={() => {
-                onSelect?.(null);
-                onEdit?.(messageId, text);
-              }}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            >
-              <Ionicons name="pencil-outline" size={15} color={theme.primary} />
-              <Text style={[styles.toolbarLabel, { color: theme.primary }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
-          )}
-          {canEdit && canDelete && (
-            <View
-              style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
-            />
-          )}
-          {canDelete && (
-            <TouchableOpacity
-              style={styles.toolbarBtn}
-              onPress={() => {
-                onSelect?.(null);
-                onDelete?.(messageId);
-              }}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            >
-              <Ionicons name="trash-outline" size={15} color={theme.danger} />
-              <Text style={[styles.toolbarLabel, { color: theme.danger }]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          <Ionicons name="arrow-undo-outline" size={16} color={theme.primary} />
+        </Animated.View>
       )}
 
-      {/* Bubble */}
-      <TouchableOpacity
-        onPress={() => onSelect?.(isSelected ? null : messageId)}
-        activeOpacity={0.92}
-        style={[
-          styles.bubble,
-          borderRadius,
-          { backgroundColor: bubbleBg },
-          isSelected && styles.bubbleSelected,
-        ]}
+      {/* Sliding message content */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{ width: "100%", transform: [{ translateX }] }}
       >
-        {/* Reply quote */}
-        {replyTo && (
-          <View
-            style={[
-              styles.replyBlock,
-              { backgroundColor: replyBg, borderLeftColor: replyBorder },
-            ]}
-          >
-            <Text
-              style={[styles.replyName, { color: replyNameColor }]}
-              numberOfLines={1}
-            >
-              {replyTo.senderName}
-            </Text>
-            <Text
-              style={[styles.replySnippet, { color: replyTextColor }]}
-              numberOfLines={2}
-            >
-              {replyTo.textSnippet}
-            </Text>
-          </View>
-        )}
+        <View style={[styles.wrapper, isSelf ? styles.wrapperEnd : styles.wrapperStart]}>
 
-        <Text style={[styles.text, { color: textColor }]}>
-          {text}
-          {editedAt ? (
-            <Text
+          {/* Sender name */}
+          {showName && !isSelf && (
+            <Text style={[styles.name, { color: theme.primary }]}>
+              {senderName}
+            </Text>
+          )}
+
+          {/* Action toolbar — above bubble when selected */}
+          {isSelected && (canReply || canEdit || canDelete) && (
+            <View
               style={[
-                styles.editedTag,
+                styles.toolbar,
+                isSelf ? styles.toolbarEnd : styles.toolbarStart,
                 {
-                  color: isSelf
-                    ? "rgba(0,0,0,0.4)"
-                    : theme.textSecondary,
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
                 },
               ]}
             >
-              {" "}· edited
-            </Text>
-          ) : null}
-        </Text>
-      </TouchableOpacity>
+              {canReply && (
+                <TouchableOpacity
+                  style={styles.toolbarBtn}
+                  onPress={() => {
+                    onSelect?.(null);
+                    onReply?.(messageId);
+                  }}
+                  hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                >
+                  <Ionicons
+                    name="arrow-undo-outline"
+                    size={15}
+                    color={theme.textSecondary}
+                  />
+                  <Text
+                    style={[styles.toolbarLabel, { color: theme.textSecondary }]}
+                  >
+                    Reply
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {canReply && (canEdit || canDelete) && (
+                <View
+                  style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
+                />
+              )}
+              {canEdit && (
+                <TouchableOpacity
+                  style={styles.toolbarBtn}
+                  onPress={() => {
+                    onSelect?.(null);
+                    onEdit?.(messageId, text);
+                  }}
+                  hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                >
+                  <Ionicons name="pencil-outline" size={15} color={theme.primary} />
+                  <Text style={[styles.toolbarLabel, { color: theme.primary }]}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {canEdit && canDelete && (
+                <View
+                  style={[styles.toolbarDivider, { backgroundColor: theme.border }]}
+                />
+              )}
+              {canDelete && (
+                <TouchableOpacity
+                  style={styles.toolbarBtn}
+                  onPress={() => {
+                    onSelect?.(null);
+                    onDelete?.(messageId);
+                  }}
+                  hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                >
+                  <Ionicons name="trash-outline" size={15} color={theme.danger} />
+                  <Text style={[styles.toolbarLabel, { color: theme.danger }]}>
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
-      {/* Seen receipt */}
-      {isSelf && seenCount > 0 && (
-        <View style={styles.seenRow}>
-          <Ionicons name="checkmark-done" size={12} color={theme.primary} />
-          <Text style={[styles.seenText, { color: theme.textSecondary }]}>
-            {seenCount}
-          </Text>
+          {/* Bubble */}
+          <TouchableOpacity
+            onPress={() => onSelect?.(isSelected ? null : messageId)}
+            activeOpacity={0.92}
+            style={[
+              styles.bubble,
+              borderRadius,
+              { backgroundColor: bubbleBg },
+              isSelected && styles.bubbleSelected,
+            ]}
+          >
+            {/* Reply quote */}
+            {replyTo && (
+              <View
+                style={[
+                  styles.replyBlock,
+                  { backgroundColor: replyBg, borderLeftColor: replyBorder },
+                ]}
+              >
+                <Text
+                  style={[styles.replyName, { color: replyNameColor }]}
+                  numberOfLines={1}
+                >
+                  {replyTo.senderName}
+                </Text>
+                <Text
+                  style={[styles.replySnippet, { color: replyTextColor }]}
+                  numberOfLines={2}
+                >
+                  {replyTo.textSnippet}
+                </Text>
+              </View>
+            )}
+
+            <Text style={[styles.text, { color: textColor }]}>
+              {text}
+              {editedAt ? (
+                <Text
+                  style={[
+                    styles.editedTag,
+                    {
+                      color: isSelf
+                        ? "rgba(0,0,0,0.4)"
+                        : theme.textSecondary,
+                    },
+                  ]}
+                >
+                  {" "}· edited
+                </Text>
+              ) : null}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Seen receipt */}
+          {isSelf && seenCount > 0 && (
+            <View style={styles.seenRow}>
+              <Ionicons name="checkmark-done" size={12} color={theme.primary} />
+              <Text style={[styles.seenText, { color: theme.textSecondary }]}>
+                {seenCount}
+              </Text>
+            </View>
+          )}
         </View>
-      )}
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  swipeContainer: {
+    width: "100%",
+    marginBottom: 2,
+  },
+  replyHint: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  replyHintLeft: {
+    left: 6,
+  },
+  replyHintRight: {
+    right: 6,
+  },
   wrapper: {
     maxWidth: "78%",
-    marginBottom: 2,
   },
   wrapperStart: {
     alignSelf: "flex-start",

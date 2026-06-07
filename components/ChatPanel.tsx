@@ -119,7 +119,7 @@ export default function ChatPanel({ myName }: Props) {
       editMessage(editingMessage.messageId, trimmed);
       setEditingMessage(null);
     } else {
-      sendChat(trimmed, replyingTo?.messageId);
+      sendChat(trimmed, replyingTo?.messageId, replyingTo?.textSnippet ?? undefined);
       setReplyingTo(null);
     }
     setText("");
@@ -209,6 +209,13 @@ export default function ChatPanel({ myName }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.e2eBadge, { borderBottomColor: theme.border }]}>
+        <Ionicons name="lock-closed" size={9} color={theme.textSecondary + "90"} />
+        <Text style={[styles.e2eText, { color: theme.textSecondary + "90" }]}>
+          End-to-end encrypted
+        </Text>
+      </View>
+
       <FlatList
         ref={flatListRef}
         data={state.messages}
@@ -474,5 +481,17 @@ const styles = StyleSheet.create({
   systemChipText: {
     fontSize: 11,
     fontWeight: "600",
+  },
+  e2eBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingVertical: 5,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  e2eText: {
+    fontSize: 10,
+    fontWeight: "500",
   },
 });
