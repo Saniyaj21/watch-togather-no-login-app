@@ -67,26 +67,6 @@ export default function AboutScreen() {
           ))}
         </View>
 
-        {/* Built with */}
-        <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>BUILT WITH</Text>
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {[
-            { label: "Framework", value: "React Native + Expo" },
-            { label: "Real-time", value: "Socket.IO" },
-            { label: "Backend", value: "Express + MongoDB" },
-            { label: "Encryption", value: "AES-256-GCM (E2E)" },
-            { label: "Media", value: "Cloudinary" },
-          ].map(({ label, value }, i, arr) => (
-            <React.Fragment key={label}>
-              {i > 0 && <View style={[styles.divider, { backgroundColor: theme.border }]} />}
-              <View style={styles.metaRow}>
-                <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>{label}</Text>
-                <Text style={[styles.metaValue, { color: theme.text }]}>{value}</Text>
-              </View>
-            </React.Fragment>
-          ))}
-        </View>
-
         <Text style={[styles.footer, { color: theme.textSecondary }]}>
           Made with care. No ads, no tracking, no accounts.
         </Text>
@@ -186,20 +166,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 19,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-  },
-  metaLabel: {
-    fontSize: 14,
-  },
-  metaValue: {
-    fontSize: 14,
-    fontWeight: "600",
   },
   footer: {
     textAlign: "center",
