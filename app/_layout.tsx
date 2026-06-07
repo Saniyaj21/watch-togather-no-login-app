@@ -23,6 +23,7 @@ function RootNav() {
           options={{ title: "Watch Together", headerShown: false }}
         />
         <Stack.Screen name="join-room" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen
           name="room/[roomId]"
           options={{ headerShown: false }}

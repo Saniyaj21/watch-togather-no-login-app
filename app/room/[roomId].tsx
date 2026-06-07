@@ -17,12 +17,12 @@ import { Toast } from "../../components/Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 import { RoomProvider, useRoom } from "../../contexts/RoomContext";
-import * as Clipboard from "expo-clipboard";
 import VideoPlayer from "../../components/VideoPlayer";
 import UrlInput from "../../components/UrlInput";
 import ChatPanel from "../../components/ChatPanel";
 import ParticipantList from "../../components/ParticipantList";
 import QueuePanel from "../../components/QueuePanel";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -37,6 +37,7 @@ function RoomContent() {
 
   const [activeTab, setActiveTab] = useState<number>(1);
   const [videoCollapsed, setVideoCollapsed] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   // ── Unread badge ──────────────────────────────────────────────────────────
@@ -111,9 +112,7 @@ function RoomContent() {
     }
   }, [state.kicked]);
 
-  const handleLeave = () => {
-    router.replace("/");
-  };
+  const handleLeave = () => setShowLeaveDialog(true);
 
   const handleTabPress = (index: number) => {
     setActiveTab(index);
@@ -202,34 +201,26 @@ function RoomContent() {
         enabled={Platform.OS === "ios"}
         keyboardVerticalOffset={0}
       >
-        {/* Combined bar: code | tabs | exit */}
+        {/* Tab bar: settings | tabs | exit */}
         <View style={[styles.tabBarContainer, { borderBottomColor: theme.border, backgroundColor: theme.background }]}>
-          {/* Left: room code */}
           <TouchableOpacity
-            onPress={async () => {
-              await Clipboard.setStringAsync(roomId || "");
-              Toast.show({ type: "success", text1: "Copied", text2: "Room code copied!" });
-            }}
+            onPress={() => router.push("/settings")}
             activeOpacity={0.7}
-            style={[styles.roomCodeBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.iconBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
-            <Text style={[styles.roomCodeText, { color: theme.textSecondary }]}>{roomId}</Text>
-            <Ionicons name="copy-outline" size={10} color={theme.textSecondary} style={{ marginLeft: 4 }} />
+            <Ionicons name="settings-outline" size={15} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          {/* Center: tabs */}
           <View style={[styles.tabTrack, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {renderTab(0, "play-outline", "Video")}
             {renderTab(1, "chatbubble-outline", "Chat")}
             {renderTab(2, "people-outline", state.participants?.length || 0)}
           </View>
 
-          {/* Right: leave */}
           <TouchableOpacity
             onPress={handleLeave}
             activeOpacity={0.7}
-            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            style={[styles.leaveBtn, { backgroundColor: theme.danger + "15", borderColor: theme.danger + "30" }]}
+            style={[styles.iconBtn, { backgroundColor: theme.danger + "15", borderColor: theme.danger + "30" }]}
           >
             <Ionicons name="exit-outline" size={16} color={theme.danger} />
           </TouchableOpacity>
@@ -311,11 +302,23 @@ function RoomContent() {
 
             {/* Tab 2: Participants */}
             <View style={{ width: SCREEN_WIDTH }}>
-              <ParticipantList myName={name || "Guest"} />
+              <ParticipantList myName={name || "Guest"} roomId={roomId} />
             </View>
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={showLeaveDialog}
+        icon="exit-outline"
+        title="Leave Room"
+        message="Your watch session will end. You can rejoin with the same code."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
+        destructive
+        onConfirm={() => router.replace("/")}
+        onCancel={() => setShowLeaveDialog(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -351,11 +354,11 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   tabBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderBottomWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
     gap: 8,
   },
   tabTrack: {
@@ -377,28 +380,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tabLabel: { fontSize: 12, fontWeight: "700" },
-  roomControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  roomCodeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 9,
-    borderWidth: 1,
-  },
-  roomCodeText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-  leaveBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
+  iconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",

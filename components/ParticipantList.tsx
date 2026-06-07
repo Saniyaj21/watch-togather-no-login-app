@@ -8,6 +8,8 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { Toast } from "./Toast";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
 
@@ -15,6 +17,7 @@ type Props = {
   visible?: boolean;
   onClose?: () => void;
   myName: string;
+  roomId?: string;
 };
 
 const AVATAR_PALETTE = [
@@ -36,7 +39,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
 }
 
-export default function ParticipantList({ visible, onClose, myName }: Props) {
+export default function ParticipantList({ visible, onClose, myName, roomId }: Props) {
   const { theme } = useTheme();
   const { state, kickUser } = useRoom();
   const isHost = state.hostName === myName;
@@ -76,16 +79,39 @@ export default function ParticipantList({ visible, onClose, myName }: Props) {
 
       {/* Inline header */}
       {isInline && (
-        <View style={styles.inlineHeader}>
-          <Text style={[styles.inlineTitle, { color: theme.textSecondary }]}>
-            MEMBERS
-          </Text>
-          <View style={[styles.countBadge, { backgroundColor: theme.primaryMuted, borderColor: theme.primary + "30" }]}>
-            <Text style={[styles.countText, { color: theme.primary }]}>
-              {state.participants.length}
+        <>
+          <View style={styles.inlineHeader}>
+            <Text style={[styles.inlineTitle, { color: theme.textSecondary }]}>
+              MEMBERS
             </Text>
+            <View style={[styles.countBadge, { backgroundColor: theme.primaryMuted, borderColor: theme.primary + "30" }]}>
+              <Text style={[styles.countText, { color: theme.primary }]}>
+                {state.participants.length}
+              </Text>
+            </View>
           </View>
-        </View>
+
+          {/* Invite card */}
+          {roomId && (
+            <TouchableOpacity
+              onPress={async () => {
+                await Clipboard.setStringAsync(roomId);
+                Toast.show({ type: "success", text1: "Copied", text2: "Room code copied!" });
+              }}
+              activeOpacity={0.75}
+              style={[styles.inviteCard, { backgroundColor: theme.primaryMuted, borderColor: theme.primary + "30" }]}
+            >
+              <View style={[styles.inviteIcon, { backgroundColor: theme.primary + "20" }]}>
+                <Ionicons name="link-outline" size={16} color={theme.primary} />
+              </View>
+              <View style={styles.inviteText}>
+                <Text style={[styles.inviteLabel, { color: theme.textSecondary }]}>Invite with code</Text>
+                <Text style={[styles.inviteCode, { color: theme.primary }]}>{roomId}</Text>
+              </View>
+              <Ionicons name="copy-outline" size={14} color={theme.primary + "90"} />
+            </TouchableOpacity>
+          )}
+        </>
       )}
 
       <FlatList
@@ -278,6 +304,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   countText: { fontSize: 11, fontWeight: "700" },
+  inviteCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 12,
+    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+  },
+  inviteIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inviteText: { flex: 1 },
+  inviteLabel: { fontSize: 11, fontWeight: "600", marginBottom: 2 },
+  inviteCode: { fontSize: 15, fontWeight: "800", letterSpacing: 2 },
   listContent: {
     paddingHorizontal: 12,
     paddingBottom: 40,

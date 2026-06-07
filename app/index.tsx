@@ -345,11 +345,25 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.background }]}>
+      {/* Settings */}
+      <TouchableOpacity
+        onPress={() => router.push("/settings")}
+        style={[
+          styles.cornerBtn,
+          styles.cornerBtnLeft,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="settings-outline" size={17} color={theme.textSecondary} />
+      </TouchableOpacity>
+
       {/* Theme toggle */}
       <TouchableOpacity
         onPress={toggleTheme}
         style={[
-          styles.themeBtn,
+          styles.cornerBtn,
+          styles.cornerBtnRight,
           { backgroundColor: theme.surface, borderColor: theme.border },
         ]}
         activeOpacity={0.7}
@@ -526,10 +540,9 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  themeBtn: {
+  cornerBtn: {
     position: "absolute",
     top: 56,
-    right: 20,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -538,6 +551,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 10,
   },
+  cornerBtnLeft: { left: 20 },
+  cornerBtnRight: { right: 20 },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",

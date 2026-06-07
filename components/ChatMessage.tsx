@@ -269,6 +269,7 @@ export default function ChatMessage({
               styles.bubble,
               borderRadius,
               { backgroundColor: bubbleBg },
+              imageUrl ? styles.bubbleWithImage : null,
               isSelected && styles.bubbleSelected,
             ]}
           >
@@ -303,7 +304,13 @@ export default function ChatMessage({
               />
             ) : null}
             {text?.trim() ? (
-              <Text style={[styles.text, { color: textColor }, imageUrl ? styles.textAfterImage : null]}>
+              <Text
+                style={[
+                  styles.text,
+                  { color: textColor },
+                  imageUrl ? styles.captionText : null,
+                ]}
+              >
                 {text}
                 {editedAt ? (
                   <Text
@@ -411,6 +418,12 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     overflow: "hidden",
   },
+  bubbleWithImage: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderWidth: 1,
+    borderColor: "#a0f0f0",
+  },
   bubbleSelected: {
     opacity: 0.78,
   },
@@ -465,12 +478,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   image: {
-    width: 200,
+    width: 220,
     height: 200,
-    borderRadius: 8,
-    marginHorizontal: -4,
+    borderRadius: 0,
   },
-  textAfterImage: {
-    marginTop: 6,
+  captionText: {
+    paddingHorizontal: 13,
+    paddingTop: 8,
+    paddingBottom: 2,
   },
 });
