@@ -6,7 +6,12 @@ export type AccentId =
   | "red"
   | "pink"
   | "teal"
-  | "indigo";
+  | "indigo"
+  | "slate"
+  | "sage"
+  | "clay"
+  | "mauve"
+  | "moss";
 
 export type AccentDef = {
   id: AccentId;
@@ -81,6 +86,47 @@ export const ACCENT_COLORS: AccentDef[] = [
     darkPrimary: "#7D7AFF",
     lightPrimaryLight: "#EEECFB",
     darkPrimaryLight: "#0D0B28",
+  },
+  // ── Matte / natural ──────────────────────────────────────────────────────
+  {
+    id: "slate",
+    label: "Slate",
+    lightPrimary: "#5B7A91",
+    darkPrimary: "#7FA3BC",
+    lightPrimaryLight: "#EAF0F5",
+    darkPrimaryLight: "#0D1720",
+  },
+  {
+    id: "sage",
+    label: "Sage",
+    lightPrimary: "#5C7A62",
+    darkPrimary: "#7FA887",
+    lightPrimaryLight: "#EBF3EC",
+    darkPrimaryLight: "#0D1A0F",
+  },
+  {
+    id: "clay",
+    label: "Clay",
+    lightPrimary: "#8C5A47",
+    darkPrimary: "#B07A66",
+    lightPrimaryLight: "#F5ECE9",
+    darkPrimaryLight: "#1C0F0C",
+  },
+  {
+    id: "mauve",
+    label: "Mauve",
+    lightPrimary: "#8A6A7E",
+    darkPrimary: "#B094A6",
+    lightPrimaryLight: "#F2EBF0",
+    darkPrimaryLight: "#1A1018",
+  },
+  {
+    id: "moss",
+    label: "Moss",
+    lightPrimary: "#5F6D40",
+    darkPrimary: "#85945F",
+    lightPrimaryLight: "#EAEEDF",
+    darkPrimaryLight: "#111508",
   },
 ];
 
