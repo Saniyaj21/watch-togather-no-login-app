@@ -269,7 +269,7 @@ export default function ChatMessage({
               styles.bubble,
               borderRadius,
               { backgroundColor: bubbleBg },
-              imageUrl ? styles.bubbleWithImage : null,
+              imageUrl ? [styles.bubbleWithImage, { borderColor: theme.border }] : null,
               isSelected && styles.bubbleSelected,
             ]}
           >
@@ -422,7 +422,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 0,
     borderWidth: 1,
-    borderColor: "#a0f0f0",
   },
   bubbleSelected: {
     opacity: 0.78,
