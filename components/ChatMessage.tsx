@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import ImageViewer from "./ImageViewer";
 
 type ReplyTo = {
   messageId: string;
@@ -60,6 +61,7 @@ export default function ChatMessage({
   imageUrl = null,
 }: Props) {
   const { theme } = useTheme();
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -297,11 +299,18 @@ export default function ChatMessage({
             )}
 
             {imageUrl ? (
-              <Image
-                source={{ uri: imageUrl }}
-                style={styles.image}
-                resizeMode="cover"
-              />
+              <TouchableOpacity
+                activeOpacity={0.92}
+                onPress={() => setViewerOpen(true)}
+                onLongPress={() => onSelect?.(messageId)}
+                delayLongPress={350}
+              >
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={[styles.image, isSelected && styles.imageSelected]}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
             ) : null}
             {text?.trim() ? (
               <Text
@@ -337,6 +346,15 @@ export default function ChatMessage({
           )}
         </View>
       </Animated.View>
+
+      {imageUrl ? (
+        <ImageViewer
+          visible={viewerOpen}
+          images={[imageUrl]}
+          initialIndex={0}
+          onClose={() => setViewerOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -480,6 +498,9 @@ const styles = StyleSheet.create({
     width: 220,
     height: 200,
     borderRadius: 0,
+  },
+  imageSelected: {
+    opacity: 0.72,
   },
   captionText: {
     paddingHorizontal: 13,
