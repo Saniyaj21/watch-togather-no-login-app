@@ -28,3 +28,16 @@ export const getRoom = async (roomId: string) => {
   if (!res.ok) throw new Error("Room not found");
   return res.json();
 };
+
+export const uploadImage = async (uri: string): Promise<string> => {
+  const form = new FormData();
+  const filename = uri.split("/").pop() ?? "image.jpg";
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
+  const mime = ext === "png" ? "image/png" : ext === "gif" ? "image/gif" : "image/jpeg";
+  form.append("image", { uri, name: filename, type: mime } as any);
+
+  const res = await fetch(`${SERVER_URL}/api/upload`, { method: "POST", body: form });
+  if (!res.ok) throw new Error("Image upload failed");
+  const data = await res.json();
+  return data.url as string;
+};

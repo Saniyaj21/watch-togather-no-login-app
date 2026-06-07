@@ -13,8 +13,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
+import { uploadImage } from "../lib/api";
 import ChatMessage from "./ChatMessage";
 import TypingIndicator from "./TypingIndicator";
 
@@ -49,6 +51,7 @@ export default function ChatPanel({ myName }: Props) {
   const [replyingTo, setReplyingTo] = useState<ReplyingTo>(null);
   const [editingMessage, setEditingMessage] = useState<EditingMessage>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
   // Track scroll position so we know whether the user is near the top
@@ -149,6 +152,29 @@ export default function ChatPanel({ myName }: Props) {
 
   const handleDelete = (messageId: string) => {
     deleteMessage(messageId);
+  };
+
+  const handleImagePick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.85,
+      allowsEditing: false,
+    });
+    if (result.canceled) return;
+
+    setIsUploading(true);
+    try {
+      const url = await uploadImage(result.assets[0].uri);
+      sendChat("", replyingTo?.messageId, replyingTo?.textSnippet ?? undefined, url);
+      setReplyingTo(null);
+    } catch {
+      // silent fail — could show a toast here
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleScroll = (event: any) => {
@@ -277,6 +303,7 @@ export default function ChatPanel({ myName }: Props) {
               onEdit={handleEdit}
               onDelete={handleDelete}
               isHost={isHost}
+              imageUrl={item.imageUrl}
             />
           );
         }}
@@ -375,6 +402,20 @@ export default function ChatPanel({ myName }: Props) {
             },
           ]}
         >
+          {!editingMessage && (
+            <TouchableOpacity
+              onPress={handleImagePick}
+              disabled={isUploading}
+              hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
+              style={styles.imageBtn}
+            >
+              {isUploading ? (
+                <ActivityIndicator size={16} color={theme.textSecondary} />
+              ) : (
+                <Ionicons name="image-outline" size={20} color={theme.textSecondary} />
+              )}
+            </TouchableOpacity>
+          )}
           <TextInput
             style={[styles.input, { color: theme.text }]}
             value={text}
@@ -459,6 +500,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     paddingVertical: 7,
+  },
+  imageBtn: {
+    paddingHorizontal: 4,
+    justifyContent: "center",
+    alignItems: "center",
   },
   sendBtn: {
     width: 38,

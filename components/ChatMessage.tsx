@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   PanResponder,
   Animated,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
@@ -33,6 +34,7 @@ type Props = {
   onEdit?: (messageId: string, currentText: string) => void;
   onDelete?: (messageId: string) => void;
   isHost?: boolean;
+  imageUrl?: string | null;
 };
 
 const SWIPE_THRESHOLD = 60;
@@ -55,6 +57,7 @@ export default function ChatMessage({
   onEdit,
   onDelete,
   isHost = false,
+  imageUrl = null,
 }: Props) {
   const { theme } = useTheme();
 
@@ -292,23 +295,28 @@ export default function ChatMessage({
               </View>
             )}
 
-            <Text style={[styles.text, { color: textColor }]}>
-              {text}
-              {editedAt ? (
-                <Text
-                  style={[
-                    styles.editedTag,
-                    {
-                      color: isSelf
-                        ? "rgba(0,0,0,0.4)"
-                        : theme.textSecondary,
-                    },
-                  ]}
-                >
-                  {" "}· edited
-                </Text>
-              ) : null}
-            </Text>
+            {imageUrl ? (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            ) : null}
+            {text?.trim() ? (
+              <Text style={[styles.text, { color: textColor }, imageUrl ? styles.textAfterImage : null]}>
+                {text}
+                {editedAt ? (
+                  <Text
+                    style={[
+                      styles.editedTag,
+                      { color: isSelf ? "rgba(0,0,0,0.4)" : theme.textSecondary },
+                    ]}
+                  >
+                    {" "}· edited
+                  </Text>
+                ) : null}
+              </Text>
+            ) : null}
           </TouchableOpacity>
 
           {/* Seen receipt */}
@@ -401,6 +409,7 @@ const styles = StyleSheet.create({
   bubble: {
     paddingHorizontal: 13,
     paddingVertical: 9,
+    overflow: "hidden",
   },
   bubbleSelected: {
     opacity: 0.78,
@@ -454,5 +463,14 @@ const styles = StyleSheet.create({
   seenText: {
     fontSize: 10,
     fontWeight: "600",
+  },
+  image: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    marginHorizontal: -4,
+  },
+  textAfterImage: {
+    marginTop: 6,
   },
 });

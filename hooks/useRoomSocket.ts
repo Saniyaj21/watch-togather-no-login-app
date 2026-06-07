@@ -21,6 +21,7 @@ type Message = {
   isDeleted?: boolean;
   editedAt?: string | null;
   replyTo?: ReplyTo;
+  imageUrl?: string | null;
 };
 
 type SeenEntry = { name: string; lastSeenAt: string };
@@ -355,11 +356,11 @@ export const useRoomSocket = (roomId: string, name: string) => {
     };
   }, [roomId, name]);
 
-  const sendChat = useCallback((text: string, replyToMessageId?: string, replyToSnippet?: string) => {
+  const sendChat = useCallback((text: string, replyToMessageId?: string, replyToSnippet?: string, imageUrl?: string) => {
     const key = keyRef.current;
-    const encryptedText = key ? encryptText(key, text) : text;
+    const encryptedText = key && text.trim() ? encryptText(key, text) : text;
     const encryptedSnippet = key && replyToSnippet ? encryptText(key, replyToSnippet) : replyToSnippet;
-    socketRef.current?.emit("chat:send", { text: encryptedText, replyToMessageId, replyToSnippet: encryptedSnippet });
+    socketRef.current?.emit("chat:send", { text: encryptedText, replyToMessageId, replyToSnippet: encryptedSnippet, imageUrl });
     socketRef.current?.emit("chat:typing", { isTyping: false });
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   }, []);
