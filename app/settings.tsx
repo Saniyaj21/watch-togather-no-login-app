@@ -13,31 +13,17 @@ import { useTheme } from "../contexts/ThemeContext";
 
 const ROWS = [
   { icon: "color-palette-outline", label: "Theme", route: "/theme-settings" },
-  { icon: "notifications-outline", label: "Notifications", route: null },
-  { icon: "videocam-outline", label: "Playback", route: null },
-  { icon: "chatbubble-outline", label: "Chat", route: null },
-  { icon: "shield-checkmark-outline", label: "Privacy", route: null },
-  { icon: "information-circle-outline", label: "About", route: null },
+  { icon: "shield-checkmark-outline", label: "Privacy", route: "/privacy" },
+  { icon: "information-circle-outline", label: "About", route: "/about" },
 ];
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
 
+
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.background }]}>
-      {/* Back */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[
-          styles.backBtn,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-        ]}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="arrow-back" size={18} color={theme.textSecondary} />
-      </TouchableOpacity>
-
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -87,22 +73,10 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  backBtn: {
-    position: "absolute",
-    top: 56,
-    left: 20,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 32,
     paddingBottom: 40,
   },
   header: {

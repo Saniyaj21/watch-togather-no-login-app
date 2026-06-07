@@ -24,7 +24,6 @@ export default function ThemeSettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.background }]}>
-      {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}

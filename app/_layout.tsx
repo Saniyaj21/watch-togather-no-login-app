@@ -24,6 +24,9 @@ function RootNav() {
         />
         <Stack.Screen name="join-room" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="theme-settings" options={{ headerShown: false }} />
+        <Stack.Screen name="about" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy" options={{ headerShown: false }} />
         <Stack.Screen
           name="room/[roomId]"
           options={{ headerShown: false }}
