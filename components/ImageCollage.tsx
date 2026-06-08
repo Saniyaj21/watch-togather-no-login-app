@@ -39,6 +39,7 @@ export default function ImageCollage({ items, borderRadius, isSelf = false, isHo
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [imageErrors, setImageErrors] = useState<boolean[]>([]);
 
   const open = (i: number) => {
     if (selectedIndex !== null) {
@@ -57,20 +58,28 @@ export default function ImageCollage({ items, borderRadius, isSelf = false, isHo
   const cell = (index: number, w: number, h: number, extraBr?: Partial<BorderRadius>, showOverlay = false) => {
     const { uri } = items[index];
     const isSelected = selectedIndex === index;
+    const hasError = imageErrors[index];
     return (
       <TouchableOpacity
         key={index}
-        onPress={() => open(index)}
+        onPress={() => !hasError && open(index)}
         onLongPress={() => { if (hasActions) setSelectedIndex(index); }}
         delayLongPress={350}
         activeOpacity={0.88}
         style={{ position: "relative" }}
       >
-        <Image
-          source={{ uri }}
-          style={[{ width: w, height: h }, extraBr ?? {}, isSelected ? styles.cellSelected : null]}
-          resizeMode="cover"
-        />
+        {hasError ? (
+          <View style={[{ width: w, height: h }, extraBr ?? {}, styles.errorPlaceholder]}>
+            <Ionicons name="image-outline" size={22} color="rgba(128,128,128,0.5)" />
+          </View>
+        ) : (
+          <Image
+            source={{ uri }}
+            style={[{ width: w, height: h }, extraBr ?? {}, isSelected ? styles.cellSelected : null]}
+            resizeMode="cover"
+            onError={() => setImageErrors((prev) => { const next = [...prev]; next[index] = true; return next; })}
+          />
+        )}
         {showOverlay && (
           <View style={styles.overlay}>
             <Text style={styles.overlayText}>+{extra}</Text>
@@ -225,6 +234,11 @@ const styles = StyleSheet.create({
   },
   cellSelected: {
     opacity: 0.72,
+  },
+  errorPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(128,128,128,0.1)",
   },
   overlay: {
     position: "absolute",

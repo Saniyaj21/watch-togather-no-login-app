@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useTheme } from "../contexts/ThemeContext";
 import { useRoom } from "../contexts/RoomContext";
 import { uploadImage } from "../lib/api";
+import { Toast } from "./Toast";
 import ChatMessage from "./ChatMessage";
 import ImageCollage from "./ImageCollage";
 import TypingIndicator from "./TypingIndicator";
@@ -236,11 +237,12 @@ export default function ChatPanel({ myName }: Props) {
 
     setIsUploading(true);
     try {
-      const url = await uploadImage(result.assets[0].uri);
+      const asset = result.assets[0];
+      const url = await uploadImage(asset.uri, asset.mimeType ?? undefined);
       sendChat("", replyingTo?.messageId, replyingTo?.textSnippet ?? undefined, url);
       setReplyingTo(null);
     } catch {
-      // silent fail — could show a toast here
+      Toast.show({ type: "error", text1: "Upload failed", text2: "Could not send image. Please try again." });
     } finally {
       setIsUploading(false);
     }
@@ -303,7 +305,7 @@ export default function ChatPanel({ myName }: Props) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]} onTouchStart={() => setSelectedMessageId(null)}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.e2eBadge, { borderBottomColor: theme.border }]}>
         <Ionicons name="lock-closed" size={9} color={theme.textSecondary + "90"} />
         <Text style={[styles.e2eText, { color: theme.textSecondary + "90" }]}>
@@ -522,26 +524,26 @@ export default function ChatPanel({ myName }: Props) {
         >
           {!editingMessage && (
             <>
-              <TouchableOpacity
-                onPress={() => handleImagePick("camera")}
-                disabled={isUploading}
-                hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
-                style={styles.imageBtn}
-              >
-                <Ionicons name="camera-outline" size={20} color={theme.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => handleImagePick("gallery")}
-                disabled={isUploading}
-                hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
-                style={styles.imageBtn}
-              >
-                {isUploading ? (
-                  <ActivityIndicator size={16} color={theme.textSecondary} />
-                ) : (
-                  <Ionicons name="image-outline" size={20} color={theme.textSecondary} />
-                )}
-              </TouchableOpacity>
+              {isUploading ? (
+                <ActivityIndicator size={16} color={theme.textSecondary} style={styles.imageBtn} />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() => handleImagePick("camera")}
+                    hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
+                    style={styles.imageBtn}
+                  >
+                    <Ionicons name="camera-outline" size={20} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleImagePick("gallery")}
+                    hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
+                    style={styles.imageBtn}
+                  >
+                    <Ionicons name="image-outline" size={20} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                </>
+              )}
             </>
           )}
           <TextInput

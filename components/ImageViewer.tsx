@@ -7,12 +7,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   StatusBar,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-const { width: W, height: H } = Dimensions.get("window");
 
 type Props = {
   visible: boolean;
@@ -22,18 +20,21 @@ type Props = {
 };
 
 export default function ImageViewer({ visible, images, initialIndex = 0, onClose }: Props) {
+  const { width: W, height: H } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const [current, setCurrent] = useState(initialIndex);
+  const [imageErrors, setImageErrors] = useState<boolean[]>([]);
 
   useEffect(() => {
     if (visible) {
       setCurrent(initialIndex);
+      setImageErrors([]);
       // Scroll to initial image without animation after modal is shown
       setTimeout(() => {
         scrollRef.current?.scrollTo({ x: initialIndex * W, animated: false });
       }, 80);
     }
-  }, [visible, initialIndex]);
+  }, [visible, initialIndex, W]);
 
   return (
     <Modal
@@ -71,12 +72,19 @@ export default function ImageViewer({ visible, images, initialIndex = 0, onClose
           style={styles.pager}
         >
           {images.map((uri, i) => (
-            <View key={i} style={styles.page}>
-              <Image
-                source={{ uri }}
-                style={styles.image}
-                resizeMode="contain"
-              />
+            <View key={i} style={[styles.page, { width: W, height: H }]}>
+              {imageErrors[i] ? (
+                <View style={styles.errorPlaceholder}>
+                  <Ionicons name="image-outline" size={48} color="rgba(255,255,255,0.3)" />
+                </View>
+              ) : (
+                <Image
+                  source={{ uri }}
+                  style={{ width: W, height: H * 0.82 }}
+                  resizeMode="contain"
+                  onError={() => setImageErrors((prev) => { const next = [...prev]; next[i] = true; return next; })}
+                />
+              )}
             </View>
           ))}
         </ScrollView>
@@ -136,14 +144,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    width: W,
-    height: H,
     alignItems: "center",
     justifyContent: "center",
   },
-  image: {
-    width: W,
-    height: H * 0.82,
+  errorPlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dots: {
     position: "absolute",

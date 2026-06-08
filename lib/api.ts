@@ -29,11 +29,12 @@ export const getRoom = async (roomId: string) => {
   return res.json();
 };
 
-export const uploadImage = async (uri: string): Promise<string> => {
+export const uploadImage = async (uri: string, mimeType?: string): Promise<string> => {
   const form = new FormData();
   const filename = uri.split("/").pop() ?? "image.jpg";
   const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
-  const mime = ext === "png" ? "image/png" : ext === "gif" ? "image/gif" : "image/jpeg";
+  const fallbackMime = ext === "png" ? "image/png" : ext === "gif" ? "image/gif" : "image/jpeg";
+  const mime = mimeType ?? fallbackMime;
   form.append("image", { uri, name: filename, type: mime } as any);
 
   const res = await fetch(`${SERVER_URL}/api/upload`, { method: "POST", body: form });

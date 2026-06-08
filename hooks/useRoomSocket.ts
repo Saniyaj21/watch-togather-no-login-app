@@ -172,7 +172,7 @@ function reducer(state: RoomState, action: Action): RoomState {
       return {
         ...state,
         messages: state.messages.map((m) =>
-          m._id === action.messageId ? { ...m, isDeleted: true, text: "" } : m
+          m._id === action.messageId ? { ...m, isDeleted: true, text: "", imageUrl: null } : m
         ),
       };
     case "USER_TYPING": {

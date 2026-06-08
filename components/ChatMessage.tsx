@@ -62,6 +62,7 @@ export default function ChatMessage({
 }: Props) {
   const { theme } = useTheme();
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -301,15 +302,22 @@ export default function ChatMessage({
             {imageUrl ? (
               <TouchableOpacity
                 activeOpacity={0.92}
-                onPress={() => setViewerOpen(true)}
+                onPress={() => !imageError && setViewerOpen(true)}
                 onLongPress={() => onSelect?.(messageId)}
                 delayLongPress={350}
               >
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={[styles.image, isSelected && styles.imageSelected]}
-                  resizeMode="cover"
-                />
+                {imageError ? (
+                  <View style={[styles.image, styles.imageErrorPlaceholder]}>
+                    <Ionicons name="image-outline" size={28} color="rgba(128,128,128,0.5)" />
+                  </View>
+                ) : (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={[styles.image, isSelected && styles.imageSelected]}
+                    resizeMode="cover"
+                    onError={() => setImageError(true)}
+                  />
+                )}
               </TouchableOpacity>
             ) : null}
             {text?.trim() ? (
@@ -501,6 +509,11 @@ const styles = StyleSheet.create({
   },
   imageSelected: {
     opacity: 0.72,
+  },
+  imageErrorPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(128,128,128,0.1)",
   },
   captionText: {
     paddingHorizontal: 13,
